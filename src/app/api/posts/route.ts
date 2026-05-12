@@ -1,5 +1,92 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { sanitizeRichText } from "@/lib/rich-text";
+
+type VisiblePost = Record<string, unknown> & {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  room_id: string | null;
+  like_count?: number | null;
+  comment_count?: number | null;
+  reshare_count?: number | null;
+};
+
+const STOP_WORDS = new Set([
+  "and", "the", "for", "with", "from", "that", "this", "your", "you", "are", "our", "but",
+  "about", "into", "have", "has", "was", "were", "will", "can", "how", "what", "why",
+  "job", "jobs", "work", "career", "role", "roles",
+]);
+
+function normalizeTerm(value: string) {
+  return value.toLowerCase().replace(/&/g, " ").replace(/[^a-z0-9+#.\s-]/g, " ").trim();
+}
+
+function tokenize(value: string) {
+  return normalizeTerm(value)
+    .split(/[\s,/|]+/)
+    .map((term) => term.trim())
+    .filter((term) => term.length >= 3 && !STOP_WORDS.has(term));
+}
+
+function stripHtml(value: string) {
+  return value.replace(/<[^>]*>/g, " ");
+}
+
+function extractHashtags(value: string) {
+  return [...value.matchAll(/#([a-zA-Z0-9_-]+)/g)].map((match) => match[1]);
+}
+
+function addWeightedTerms(weights: Map<string, number>, values: Array<string | null | undefined>, weight: number) {
+  for (const value of values) {
+    if (!value) continue;
+    const phrase = normalizeTerm(value);
+    if (phrase.length >= 3) weights.set(phrase, Math.max(weights.get(phrase) ?? 0, weight));
+    for (const token of tokenize(value)) weights.set(token, Math.max(weights.get(token) ?? 0, weight * 0.7));
+  }
+}
+
+function freshnessScore(createdAt: string) {
+  const ageHours = Math.max(0, (Date.now() - new Date(createdAt).getTime()) / 36e5);
+  return Math.max(0, 18 - ageHours * 0.55);
+}
+
+function engagementScore(post: VisiblePost, upvotes: number, downvotes: number) {
+  return (
+    Math.log1p((post.like_count ?? 0) + upvotes * 2 + (post.comment_count ?? 0) * 3 + (post.reshare_count ?? 0) * 2) * 7
+    - downvotes * 2
+  );
+}
+
+function relevanceScore(
+  post: VisiblePost,
+  profile: { headline: string | null } | null,
+  room: { name: string; slug: string } | null,
+  interestWeights: Map<string, number>,
+  joinedRoomIds: Set<string>,
+  upvotes: number,
+  downvotes: number,
+) {
+  const postText = normalizeTerm([
+    stripHtml(post.content ?? ""),
+    room?.name,
+    profile?.headline,
+    extractHashtags(post.content ?? "").join(" "),
+  ].filter(Boolean).join(" "));
+
+  let score = 0;
+  for (const [term, weight] of interestWeights) {
+    if (!term) continue;
+    if (postText.includes(term)) score += weight;
+  }
+
+  if (post.room_id && joinedRoomIds.has(post.room_id)) score += 18;
+  score += engagementScore(post, upvotes, downvotes);
+  score += freshnessScore(post.created_at);
+
+  return score;
+}
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -10,15 +97,21 @@ export async function GET(req: NextRequest) {
   const roomId = searchParams.get("room_id");
   const filterRoomIds = searchParams.get("room_ids")?.split(",").filter(Boolean) ?? [];
   const cursor = searchParams.get("cursor");
+  const sort = searchParams.get("sort") ?? "all";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any;
 
   let query = sb
     .from("posts")
-    .select("id, content, media_urls, like_count, comment_count, reshare_count, created_at, user_id, room_id, reshared_post_id, visibility")
-    .order("created_at", { ascending: false })
-    .limit(20);
+    .select("id, content, media_urls, like_count, comment_count, reshare_count, created_at, user_id, room_id, reshared_post_id, visibility");
+
+  if (sort === "top") {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    query = query.gte("created_at", weekAgo).order("like_count", { ascending: false }).order("comment_count", { ascending: false }).limit(40);
+  } else {
+    query = query.order("created_at", { ascending: false }).limit(sort === "recommended" ? 60 : 20);
+  }
 
   if (roomId) {
     query = query.eq("room_id", roomId);
@@ -52,8 +145,9 @@ export async function GET(req: NextRequest) {
   }
 
   // Filter by visibility: public → everyone, network → author's connections + author, private → author only
-  const visiblePosts = (posts as Array<Record<string, unknown>>).filter((post) => {
+  const visiblePosts = (posts as VisiblePost[]).filter((post) => {
     const vis = (post.visibility as string) ?? "public";
+    if (sort === "network" && post.user_id !== user.id && !connectionSet.has(post.user_id as string)) return false;
     if (vis === "public") return true;
     if (post.user_id === user.id) return true;
     if (vis === "network") return connectionSet.has(post.user_id as string);
@@ -71,8 +165,8 @@ export async function GET(req: NextRequest) {
     .select("id, full_name, headline, avatar_url")
     .in("id", userIds);
 
-  const profileMap = new Map(
-    (profiles ?? []).map((p: { id: string; full_name: string | null; headline: string | null }) => [p.id, p])
+  const profileMap = new Map<string, { id: string; full_name: string | null; headline: string | null; avatar_url?: string | null }>(
+    (profiles ?? []).map((p: { id: string; full_name: string | null; headline: string | null; avatar_url?: string | null }) => [p.id, p])
   );
 
   // Fetch room names for posts that belong to a room
@@ -85,15 +179,29 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const { data: joinedRows } = await sb
+    .from("room_members")
+    .select("room_id")
+    .eq("user_id", user.id);
+  const joinedRoomSet = new Set<string>(((joinedRows ?? []) as Array<{ room_id: string }>).map((row) => row.room_id));
+
   // Fetch which posts current user has liked
   const postIds = visiblePosts.map((p) => p.id as string);
-  const { data: myLikes } = await sb
-    .from("post_likes")
-    .select("post_id")
-    .eq("user_id", user.id)
-    .in("post_id", postIds);
+  const [{ data: myLikes }, { data: myFollows }] = await Promise.all([
+    sb
+      .from("post_likes")
+      .select("post_id")
+      .eq("user_id", user.id)
+      .in("post_id", postIds),
+    sb
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", user.id)
+      .in("following_id", userIds),
+  ]);
 
   const likedSet = new Set((myLikes ?? []).map((l: { post_id: string }) => l.post_id));
+  const followingSet = new Set((myFollows ?? []).map((f: { following_id: string }) => f.following_id));
 
   // Fetch vote data — gracefully skip if migration hasn't run yet
   let voteMap = new Map<string, number>();
@@ -116,9 +224,64 @@ export async function GET(req: NextRequest) {
     }
   } catch { /* migration not yet applied */ }
 
-  const enriched = visiblePosts.map((post) => ({
+  let rankedPosts = visiblePosts;
+
+  if (sort === "recommended") {
+    const [{ data: preferences }, { data: myProfile }, { data: skillRows }] = await Promise.all([
+      sb.from("user_preferences").select("industries, topics, job_roles, career_goals").eq("user_id", user.id).single(),
+      sb.from("profiles").select("headline, target_roles").eq("id", user.id).single(),
+      sb.from("profile_skills").select("skills(name)").eq("user_id", user.id),
+    ]);
+
+    const pref = (preferences ?? {}) as {
+      industries?: string[];
+      topics?: string[];
+      job_roles?: string[];
+      career_goals?: string[];
+    };
+    const profile = (myProfile ?? {}) as { headline?: string | null; target_roles?: string[] | null };
+    const skills = ((skillRows ?? []) as Array<{ skills: { name: string } | null }>)
+      .map((row) => row.skills?.name)
+      .filter(Boolean) as string[];
+
+    const interestWeights = new Map<string, number>();
+    addWeightedTerms(interestWeights, pref.topics ?? [], 28);
+    addWeightedTerms(interestWeights, pref.industries ?? [], 22);
+    addWeightedTerms(interestWeights, pref.job_roles ?? [], 24);
+    addWeightedTerms(interestWeights, pref.career_goals ?? [], 18);
+    addWeightedTerms(interestWeights, profile.target_roles ?? [], 26);
+    addWeightedTerms(interestWeights, skills, 30);
+    addWeightedTerms(interestWeights, [profile.headline], 18);
+
+    rankedPosts = [...visiblePosts].sort((a, b) => {
+      const bProfile = profileMap.get(b.user_id) ?? null;
+      const aProfile = profileMap.get(a.user_id) ?? null;
+      const bScore = relevanceScore(
+        b,
+        bProfile,
+        b.room_id ? (roomMap.get(b.room_id) ?? null) : null,
+        interestWeights,
+        joinedRoomSet,
+        upvoteCountMap.get(b.id) ?? 0,
+        downvoteCountMap.get(b.id) ?? 0,
+      );
+      const aScore = relevanceScore(
+        a,
+        aProfile,
+        a.room_id ? (roomMap.get(a.room_id) ?? null) : null,
+        interestWeights,
+        joinedRoomSet,
+        upvoteCountMap.get(a.id) ?? 0,
+        downvoteCountMap.get(a.id) ?? 0,
+      );
+      return bScore - aScore || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }).slice(0, 20);
+  }
+
+  const enriched = rankedPosts.map((post) => ({
     ...post,
     profiles: profileMap.get(post.user_id as string) ?? null,
+    author_following: followingSet.has(post.user_id),
     liked_by_me: likedSet.has(post.id as string),
     my_vote: voteMap.get(post.id as string) ?? 0,
     upvote_count: upvoteCountMap.get(post.id as string) ?? 0,
@@ -143,7 +306,9 @@ export async function POST(req: NextRequest) {
     visibility?: string;
   };
 
-  if (!content?.trim()) {
+  const safeContent = sanitizeRichText(content ?? "");
+
+  if (!safeContent) {
     return NextResponse.json({ error: "Content is required" }, { status: 400 });
   }
 
@@ -157,7 +322,7 @@ export async function POST(req: NextRequest) {
     .insert({
       id: crypto.randomUUID(),
       user_id: user.id,
-      content: content.trim(),
+      content: safeContent,
       room_id: room_id ?? null,
       reshared_post_id: reshared_post_id ?? null,
       media_urls: media_urls?.length ? media_urls : null,

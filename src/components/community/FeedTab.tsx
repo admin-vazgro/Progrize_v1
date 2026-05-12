@@ -16,6 +16,7 @@ export interface Post {
   my_vote: 1 | -1 | 0;
   created_at: string;
   user_id: string;
+  author_following?: boolean;
   liked_by_me: boolean;
   profiles: { full_name: string | null; headline: string | null; avatar_url: string | null } | null;
   room?: { name: string; slug: string } | null;
@@ -33,7 +34,7 @@ interface Props {
   roomId?: string;
   joinedRoomIds?: string[];
   hideCompose?: boolean;
-  sortBy?: "all" | "latest" | "top" | "network" | "boards";
+  sortBy?: "recommended" | "all" | "latest" | "top" | "network" | "boards";
 }
 
 const POST_LIMIT = 1000;
@@ -57,6 +58,7 @@ export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideC
       } else if (sortBy === "boards" && joinedRoomIds && joinedRoomIds.length > 0) {
         params.set("room_ids", joinedRoomIds.join(","));
       }
+      if (sortBy) params.set("sort", sortBy);
       const res = await fetch(`/api/posts?${params}`);
       if (!res.ok) throw new Error("Failed to load posts");
       const data = await res.json();
@@ -66,7 +68,7 @@ export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideC
     } finally {
       setLoading(false);
     }
-  }, [roomId]);
+  }, [joinedRoomIds, roomId, sortBy]);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 

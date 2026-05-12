@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Heart, MessageCircle, Repeat2, ChevronDown, ChevronUp, Send, MoreHorizontal, Pencil, Trash2, Loader2, X, ImagePlus, ArrowUp, ArrowDown, LayoutList } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Send, MoreHorizontal, Pencil, Trash2, Loader2, X, ImagePlus, ArrowUp, ArrowDown, LayoutList, UserPlus, UserCheck } from "lucide-react";
 import Link from "next/link";
 import type { Post } from "./FeedTab";
 import { formatDistanceToNow } from "@/lib/utils";
+import { normalizePostContent, richTextToPlainText } from "@/lib/rich-text";
 
 interface Comment {
   id: string;
@@ -24,42 +25,227 @@ interface Props {
   onVote: (postId: string, myVote: 1 | -1 | 0, upvoteCount: number, downvoteCount: number) => void;
 }
 
-function Avatar({ name, url }: { name: string | null; url?: string | null }) {
+function Avatar({ name, url, size = "post" }: { name: string | null; url?: string | null; size?: "post" | "sm" }) {
   const initials = (name ?? "?").split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  if (url) return <img src={url} alt={name ?? ""} className="w-9 h-9 rounded-full object-cover shrink-0" />;
+  const sizeClass = size === "sm" ? "h-9 w-9" : "h-[45px] w-[45px]";
+  if (url) return <img src={url} alt={name ?? ""} className={`${sizeClass} rounded-full object-cover shrink-0`} />;
   return (
-    <div className="w-9 h-9 rounded-full bg-[#0a2412] text-[#c6f46b] flex items-center justify-center text-xs font-bold shrink-0">
+    <div className={`${sizeClass} rounded-full bg-[#0a2412] text-[#c6f46b] flex items-center justify-center text-xs font-bold shrink-0`}>
       {initials}
     </div>
   );
 }
 
-function ImageGrid({ urls }: { urls: string[] }) {
+function ImageGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) => void }) {
   if (!urls.length) return null;
 
   if (urls.length === 1) {
     return (
-      <div className="mt-3 w-full rounded-[10px] overflow-hidden max-h-[420px]">
+      <button
+        type="button"
+        onClick={() => onOpen(0)}
+        className="mt-8 aspect-[600/510] w-full max-w-[600px] overflow-hidden rounded-[14px] bg-[#f5f4f0] text-left"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={urls[0]} alt="" className="w-full h-full object-cover" />
+        <img src={urls[0]} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
+      </button>
+    );
+  }
+
+  if (urls.length === 2) {
+    return (
+      <div className="mt-8 grid aspect-[600/360] w-full max-w-[600px] grid-cols-2 gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
+        {urls.map((u, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onOpen(i)}
+            className="overflow-hidden bg-[#f5f4f0]"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={u} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
+          </button>
+        ))}
       </div>
     );
   }
 
-  const cols =
-    urls.length === 2 ? "grid-cols-2" :
-    urls.length === 3 ? "grid-cols-3" :
-    "grid-cols-2";
+  if (urls.length === 3) {
+    return (
+      <div className="mt-8 grid aspect-[600/420] w-full max-w-[600px] grid-cols-[minmax(0,1.55fr)_minmax(105px,1fr)] gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
+        <button
+          type="button"
+          onClick={() => onOpen(0)}
+          className="row-span-2 overflow-hidden bg-[#f5f4f0]"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={urls[0]} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
+        </button>
+        {urls.slice(1, 3).map((u, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onOpen(i + 1)}
+            className="overflow-hidden bg-[#f5f4f0]"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={u} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className={`grid ${cols} gap-[3px] mt-3`}>
-      {urls.slice(0, 4).map((u, i) => (
-        <div key={i} className="aspect-square rounded-[8px] overflow-hidden">
+    <div className="mt-8 grid aspect-[600/510] w-full max-w-[600px] grid-cols-[minmax(0,362fr)_minmax(105px,231fr)] gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
+      <button
+        type="button"
+        onClick={() => onOpen(0)}
+        className="row-span-3 overflow-hidden bg-[#f5f4f0]"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={urls[0]} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
+      </button>
+      {urls.slice(1, 4).map((u, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onOpen(i + 1)}
+          className="relative overflow-hidden bg-[#f5f4f0]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={u} alt="" className="w-full h-full object-cover" />
-        </div>
+          <img src={u} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
+          {i === 2 && urls.length > 4 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-[24px] font-semibold text-white">
+              +{urls.length - 4}
+            </div>
+          )}
+        </button>
       ))}
     </div>
+  );
+}
+
+function ImageViewer({
+  urls,
+  index,
+  onClose,
+  onChange,
+}: {
+  urls: string[];
+  index: number;
+  onClose: () => void;
+  onChange: (index: number) => void;
+}) {
+  const hasMultiple = urls.length > 1;
+  const src = urls[index];
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && hasMultiple) onChange((index - 1 + urls.length) % urls.length);
+      if (e.key === "ArrowRight" && hasMultiple) onChange((index + 1) % urls.length);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [hasMultiple, index, onChange, onClose, urls.length]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/88 p-4 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close image viewer"
+        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/12 text-white transition-colors hover:bg-white/20"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      {hasMultiple && (
+        <button
+          type="button"
+          onClick={() => onChange((index - 1 + urls.length) % urls.length)}
+          aria-label="Previous image"
+          className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white transition-colors hover:bg-white/20 sm:flex"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        className="max-h-[88vh] w-auto max-w-[98vw] rounded-[14px] object-contain shadow-[0_30px_90px_rgba(0,0,0,0.45)]"
+      />
+
+      {hasMultiple && (
+        <button
+          type="button"
+          onClick={() => onChange((index + 1) % urls.length)}
+          aria-label="Next image"
+          className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white transition-colors hover:bg-white/20 sm:flex"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+      )}
+
+      {hasMultiple && (
+        <div className="absolute bottom-4 rounded-full bg-black/45 px-3 py-1 text-xs text-white">
+          {index + 1} / {urls.length}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FollowButton({ userId, initialFollowing }: { userId: string; initialFollowing?: boolean }) {
+  const [following, setFollowing] = useState(!!initialFollowing);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setFollowing(!!initialFollowing);
+  }, [initialFollowing, userId]);
+
+  async function toggleFollow() {
+    setLoading(true);
+    const res = await fetch(`/api/users/${userId}/follow`, { method: "POST" });
+    const data = await res.json().catch(() => null);
+    if (res.ok && data) setFollowing(data.following);
+    setLoading(false);
+  }
+
+  return (
+    <button
+      onClick={toggleFollow}
+      disabled={loading}
+      className={`ml-2 inline-flex h-[30px] shrink-0 items-center gap-1.5 rounded-[8px] px-2.5 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+        following
+          ? "bg-[#e8f2eb] text-[#0a2412]"
+          : "text-[#0a66c2] hover:bg-[#edf6ff]"
+      }`}
+    >
+      {loading ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : following ? (
+        <UserCheck className="h-3.5 w-3.5" />
+      ) : (
+        <UserPlus className="h-3.5 w-3.5" />
+      )}
+      {following ? "Following" : "+ Follow"}
+    </button>
+  );
+}
+
+function PostContent({ content, compact = false }: { content: string; compact?: boolean }) {
+  return (
+    <div
+      className={`${compact ? "line-clamp-3 text-sm text-[#292929]" : "text-[14px] text-[#5f5d54]"} leading-relaxed [&_a]:text-[#0a7854] [&_a]:underline [&_h3]:mb-5 [&_h3]:text-[24px] [&_h3]:font-normal [&_h3]:leading-[1.18] [&_h3]:text-[#5f5d54] [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-4 [&_p:last-child]:mb-0 [&_ul]:list-disc`}
+      dangerouslySetInnerHTML={{ __html: normalizePostContent(content) }}
+    />
   );
 }
 
@@ -78,6 +264,7 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
   const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const editFileRef = useRef<HTMLInputElement>(null);
 
@@ -214,14 +401,17 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
   }
 
   return (
-    <div className="bg-white rounded-[20px] p-5">
+    <div className="rounded-[16px] bg-white px-5 py-5 shadow-[0_18px_50px_rgba(33,31,24,0.04)] sm:px-8 sm:py-6">
       {/* Header */}
-      <div className="flex gap-3 mb-3">
+      <div className="flex gap-4">
         <Avatar name={name} url={avatarUrl} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-[#292929] leading-tight">{name}</p>
-          {headline && <p className="text-xs text-[#4b4b4b] truncate">{headline}</p>}
-          <p className="text-xs text-[#808080] mt-0.5">{formatDistanceToNow(post.created_at)}</p>
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <p className="min-w-0 truncate text-[14px] font-bold leading-[18px] text-[#4b4b4b]">{name}</p>
+            {!isOwner && <FollowButton userId={post.user_id} initialFollowing={post.author_following} />}
+          </div>
+          {headline && <p className="truncate text-[11px] font-light leading-[15px] text-[#4b4b4b]">{headline}</p>}
+          <p className="text-[11px] font-light leading-[15px] text-[#4b4b4b]">{formatDistanceToNow(post.created_at)}</p>
         </div>
 
         {/* Owner menu */}
@@ -236,7 +426,7 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
             {menuOpen && (
               <div className="absolute top-[32px] right-0 bg-white border border-[#eceae3] rounded-[12px] shadow-xl overflow-hidden z-10 w-[130px] animate-scale-in">
                 <button
-                  onClick={() => { setEditing(true); setEditDraft(post.content); setEditImages(post.media_urls ?? []); setNewImages([]); setMenuOpen(false); }}
+                  onClick={() => { setEditing(true); setEditDraft(richTextToPlainText(post.content)); setEditImages(post.media_urls ?? []); setNewImages([]); setMenuOpen(false); }}
                   className="w-full text-left px-[12px] py-[10px] text-[12px] text-[#3d3c36] hover:bg-[#f5f4f0] flex items-center gap-[8px] transition-colors"
                 >
                   <Pencil className="w-[12px] h-[12px] text-[#8a877b]" />
@@ -258,11 +448,13 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
         )}
       </div>
 
+      <div className="my-8 h-px w-full bg-[#eceae3]" />
+
       {/* Board badge */}
       {post.room && (
         <Link
           href={`/community/rooms/${post.room.slug}`}
-          className="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-[8px] bg-[#f0ede8] hover:bg-[#e8e4de] transition-colors"
+          className="mb-5 inline-flex items-center gap-1.5 rounded-[8px] bg-[#f0ede8] px-2.5 py-1 transition-colors hover:bg-[#e8e4de]"
         >
           <LayoutList className="w-3 h-3 text-[#5f5d54]" />
           <span className="text-[11px] font-medium text-[#5f5d54]">{post.room.name}</span>
@@ -346,11 +538,19 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
           </div>
         </div>
       ) : (
-        <p className="text-sm text-[#292929] leading-relaxed whitespace-pre-wrap mb-3">{post.content}</p>
+        <PostContent content={post.content} />
       )}
 
       {/* Images — hidden in edit mode since the edit grid takes over */}
-      {!editing && images.length > 0 && <ImageGrid urls={images} />}
+      {!editing && images.length > 0 && <ImageGrid urls={images} onOpen={setViewerIndex} />}
+      {viewerIndex !== null && images[viewerIndex] && (
+        <ImageViewer
+          urls={images}
+          index={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onChange={setViewerIndex}
+        />
+      )}
 
       {/* Reshared post preview */}
       {post.reshared_post && (
@@ -358,12 +558,12 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
           <p className="text-xs font-semibold text-[#4b4b4b] mb-1">
             {post.reshared_post.profiles?.full_name ?? "Unknown"}
           </p>
-          <p className="text-sm text-[#292929] leading-relaxed line-clamp-3">{post.reshared_post.content}</p>
+          <PostContent content={post.reshared_post.content} compact />
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-1 pt-2">
+      <div className="flex items-center gap-1 pt-8">
 
         {/* Upvote */}
         <button
@@ -425,7 +625,7 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
         <div className="mt-3 pt-3 space-y-3">
           {comments.map((c) => (
             <div key={c.id} className="flex gap-2.5">
-              <Avatar name={c.profiles?.full_name ?? null} />
+              <Avatar name={c.profiles?.full_name ?? null} size="sm" />
               <div className="flex-1 bg-[#f8fafb] rounded-[10px] px-3 py-2">
                 <p className="text-xs font-bold text-[#292929] mb-0.5">
                   {c.profiles?.full_name ?? "Unknown"}

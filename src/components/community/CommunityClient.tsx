@@ -24,9 +24,10 @@ interface Props {
   discoverRooms: Room[];
 }
 
-type SortTab = "all" | "network" | "latest" | "top" | "boards";
+type SortTab = "recommended" | "all" | "network" | "latest" | "top" | "boards";
 
 const SORT_TABS: { id: SortTab; label: string }[] = [
+  { id: "recommended", label: "For You" },
   { id: "all", label: "All" },
   { id: "network", label: "My network" },
   { id: "latest", label: "Latest" },
@@ -49,7 +50,7 @@ export default function CommunityClient({
   const [composeOpen, setComposeOpen] = useState(false);
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [feedKey, setFeedKey] = useState(0);
-  const [sortTab, setSortTab] = useState<SortTab>("all");
+  const [sortTab, setSortTab] = useState<SortTab>("recommended");
   const [joinedRooms, setJoinedRooms] = useState(initialJoined);
   const [discoverRooms, setDiscoverRooms] = useState(initialDiscover);
   const [joiningId, setJoiningId] = useState<string | null>(null);
@@ -82,7 +83,13 @@ export default function CommunityClient({
     setCreateRoomOpen(false);
   }
 
-  const feedSortBy = sortTab === "latest" ? "latest" : sortTab === "top" ? "top" : sortTab === "boards" ? "boards" : "all";
+  const feedSortBy =
+    sortTab === "recommended" ? "recommended" :
+    sortTab === "latest" ? "latest" :
+    sortTab === "top" ? "top" :
+    sortTab === "network" ? "network" :
+    sortTab === "boards" ? "boards" :
+    "all";
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-[#fafaf8]">

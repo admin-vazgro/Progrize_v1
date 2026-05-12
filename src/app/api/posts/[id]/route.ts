@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeRichText } from "@/lib/rich-text";
 
 export async function PATCH(
   req: NextRequest,
@@ -13,7 +14,8 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
     const { content, media_urls } = body as { content: string; media_urls?: string[] };
-    if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+    const safeContent = sanitizeRichText(content ?? "");
+    if (!safeContent) return NextResponse.json({ error: "Content required" }, { status: 400 });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sb = supabase as any;
@@ -24,7 +26,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
-    const updatePayload: Record<string, unknown> = { content: content.trim() };
+    const updatePayload: Record<string, unknown> = { content: safeContent };
     if (media_urls !== undefined) updatePayload.media_urls = media_urls.length ? media_urls : null;
 
     const { data: updated, error } = await sb

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, ChevronDown, Paperclip, Loader2, ImageIcon } from "lucide-react";
+import { X, ChevronDown, Paperclip, Loader2, ImageIcon, Bold, Italic, Underline, List, ListOrdered, Link2 } from "lucide-react";
+import { richTextToPlainText, sanitizeRichText } from "@/lib/rich-text";
 
 interface Props {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export default function ComposeModal({ isOpen, onClose, userName, userHeadline, 
   const [error, setError] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const visRef = useRef<HTMLDivElement>(null);
 
   const initials = userName
@@ -94,15 +95,34 @@ export default function ComposeModal({ isOpen, onClose, userName, userHeadline, 
     });
   }
 
+  function syncEditorContent() {
+    setContent(sanitizeRichText(contentRef.current?.innerHTML ?? ""));
+  }
+
+  function runFormat(command: string, value?: string) {
+    contentRef.current?.focus();
+    document.execCommand(command, false, value);
+    syncEditorContent();
+  }
+
+  function addLink() {
+    const url = window.prompt("Paste a URL");
+    if (!url?.trim()) return;
+    const normalized = /^https?:\/\//i.test(url) || /^mailto:/i.test(url) ? url.trim() : `https://${url.trim()}`;
+    runFormat("createLink", normalized);
+  }
+
   async function handlePost() {
-    if (!content.trim() && !title.trim()) return;
+    const cleanContent = sanitizeRichText(content);
+    const plainContent = richTextToPlainText(cleanContent);
+    if (!plainContent && !title.trim()) return;
     setPosting(true);
     setError(null);
 
     const parts: string[] = [];
-    if (title.trim()) parts.push(title.trim());
-    if (content.trim()) parts.push(content.trim());
-    if (tags.length) parts.push(tags.map((t) => `#${t}`).join(" "));
+    if (title.trim()) parts.push(`<h3>${title.trim()}</h3>`);
+    if (plainContent) parts.push(cleanContent);
+    if (tags.length) parts.push(`<p>${tags.map((t) => `#${t}`).join(" ")}</p>`);
 
     try {
       let media_urls: string[] | undefined;
@@ -118,12 +138,13 @@ export default function ComposeModal({ isOpen, onClose, userName, userHeadline, 
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: parts.join("\n\n"), media_urls, visibility: visibility.toLowerCase() }),
+        body: JSON.stringify({ content: sanitizeRichText(parts.join("")), media_urls, visibility: visibility.toLowerCase() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to post");
       // reset
       setTitle(""); setContent(""); setTags([]); setTagInput("");
+      if (contentRef.current) contentRef.current.innerHTML = "";
       images.forEach((img) => URL.revokeObjectURL(img.preview));
       setImages([]);
       onPosted();
@@ -137,7 +158,7 @@ export default function ComposeModal({ isOpen, onClose, userName, userHeadline, 
 
   if (!isOpen) return null;
 
-  const canPost = !posting && (content.trim().length > 0 || title.trim().length > 0);
+  const canPost = !posting && (richTextToPlainText(content).length > 0 || title.trim().length > 0);
 
   return (
     <div
@@ -223,15 +244,45 @@ export default function ComposeModal({ isOpen, onClose, userName, userHeadline, 
           {/* Content */}
           <div className="flex flex-col gap-[10px]">
             <label className="text-[14px] text-black font-normal">Content</label>
-            <textarea
-              ref={contentRef}
-              autoFocus
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Your thoughts"
-              rows={7}
-              className="px-[12px] py-[10px] border border-[#dadada] rounded-[8px] text-[12px] text-[#292929] placeholder:text-[#8a877b] outline-none focus:border-[#0a2412] transition-colors resize-none leading-relaxed"
-            />
+            <div className="overflow-hidden rounded-[8px] border border-[#dadada] focus-within:border-[#0a2412] transition-colors">
+              <div className="flex flex-wrap items-center gap-1 border-b border-[#eceae3] bg-[#fafaf8] px-2 py-2">
+                {[
+                  { label: "Bold", Icon: Bold, action: () => runFormat("bold") },
+                  { label: "Italic", Icon: Italic, action: () => runFormat("italic") },
+                  { label: "Underline", Icon: Underline, action: () => runFormat("underline") },
+                  { label: "Bulleted list", Icon: List, action: () => runFormat("insertUnorderedList") },
+                  { label: "Numbered list", Icon: ListOrdered, action: () => runFormat("insertOrderedList") },
+                  { label: "Link", Icon: Link2, action: addLink },
+                ].map(({ label, Icon, action }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    aria-label={label}
+                    title={label}
+                    onClick={action}
+                    className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[#5f5d54] transition-colors hover:bg-[#eceae3] hover:text-[#0a2412]"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                ))}
+              </div>
+              <div className="relative">
+                {!richTextToPlainText(content) && (
+                  <p className="pointer-events-none absolute left-[12px] top-[10px] text-[12px] text-[#8a877b]">
+                    Your thoughts
+                  </p>
+                )}
+                <div
+                  ref={contentRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  autoFocus
+                  onInput={syncEditorContent}
+                  onBlur={syncEditorContent}
+                  className="min-h-[160px] px-[12px] py-[10px] text-[12px] leading-relaxed text-[#292929] outline-none [&_a]:text-[#0a7854] [&_a]:underline [&_h3]:mb-2 [&_h3]:text-[15px] [&_h3]:font-semibold [&_li]:ml-4 [&_ol]:list-decimal [&_p]:mb-2 [&_ul]:list-disc"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Tags */}
