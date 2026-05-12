@@ -44,7 +44,7 @@ function ImageGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) =
       <button
         type="button"
         onClick={() => onOpen(0)}
-        className="mt-8 aspect-[600/510] w-full max-w-[600px] overflow-hidden rounded-[14px] bg-[#f5f4f0] text-left"
+        className="mt-8 aspect-[600/510] w-full overflow-hidden rounded-[14px] bg-[#f5f4f0] text-left"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={urls[0]} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.015]" />
@@ -54,7 +54,7 @@ function ImageGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) =
 
   if (urls.length === 2) {
     return (
-      <div className="mt-8 grid aspect-[600/360] w-full max-w-[600px] grid-cols-2 gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
+      <div className="mt-8 grid aspect-[600/360] w-full grid-cols-2 gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
         {urls.map((u, i) => (
           <button
             key={i}
@@ -72,7 +72,7 @@ function ImageGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) =
 
   if (urls.length === 3) {
     return (
-      <div className="mt-8 grid aspect-[600/420] w-full max-w-[600px] grid-cols-[minmax(0,1.55fr)_minmax(105px,1fr)] gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
+      <div className="mt-8 grid aspect-[600/420] w-full grid-cols-[minmax(0,1.55fr)_minmax(105px,1fr)] gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
         <button
           type="button"
           onClick={() => onOpen(0)}
@@ -97,7 +97,7 @@ function ImageGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) =
   }
 
   return (
-    <div className="mt-8 grid aspect-[600/510] w-full max-w-[600px] grid-cols-[minmax(0,362fr)_minmax(105px,231fr)] gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
+    <div className="mt-8 grid aspect-[600/510] w-full grid-cols-[minmax(0,362fr)_minmax(105px,231fr)] gap-[7px] overflow-hidden rounded-[14px] bg-[#eceae3]">
       <button
         type="button"
         onClick={() => onOpen(0)}
@@ -243,7 +243,7 @@ function FollowButton({ userId, initialFollowing }: { userId: string; initialFol
 function PostContent({ content, compact = false }: { content: string; compact?: boolean }) {
   return (
     <div
-      className={`${compact ? "line-clamp-3 text-sm text-[#292929]" : "text-[14px] text-[#5f5d54]"} leading-relaxed [&_a]:text-[#0a7854] [&_a]:underline [&_h3]:mb-5 [&_h3]:text-[24px] [&_h3]:font-normal [&_h3]:leading-[1.18] [&_h3]:text-[#5f5d54] [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-4 [&_p:last-child]:mb-0 [&_ul]:list-disc`}
+      className={`${compact ? "line-clamp-3 text-sm text-[#111111]" : "text-[14px] text-[#111111]"} leading-relaxed [&_a]:text-[#0a7854] [&_a]:underline [&_h3]:mb-5 [&_h3]:text-[24px] [&_h3]:font-normal [&_h3]:leading-[1.18] [&_h3]:text-[#111111] [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-4 [&_p:last-child]:mb-0 [&_ul]:list-disc`}
       dangerouslySetInnerHTML={{ __html: normalizePostContent(content) }}
     />
   );
