@@ -9,7 +9,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "JobMatch AI — Upload CV, Get Matched",
+  title: "Progrize — AI-Powered Job Matching",
   description: "AI-powered job matching. Upload your CV, analyze jobs, and get tailored applications.",
 };
 

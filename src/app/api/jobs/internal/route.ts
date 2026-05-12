@@ -71,7 +71,7 @@ export async function GET() {
 
     // Primary: role keyword must appear in title
     const titleWords = roleWords.length > 0 ? roleWords : headlineWords;
-    const titleMatch = titleWords.some((word) => titleLower.includes(word));
+    const titleMatch = titleWords.some((word: string) => titleLower.includes(word));
     if (!titleMatch) return 0;
 
     let score = 5; // base for title match
