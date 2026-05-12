@@ -46,7 +46,7 @@ export function AnimatedStats() {
   ];
 
   return (
-    <div ref={ref} className="w-full px-6 md:px-10">
+    <div ref={ref} className="w-full px-6 py-6 md:px-10 md:py-0">
       <div className="grid grid-cols-2 gap-x-6 gap-y-5 md:flex md:items-center md:justify-center md:gap-16 lg:gap-28 xl:gap-44">
         {stats.map(({ value, label }) => (
           <div key={label} className="flex flex-col gap-1.5 md:gap-[13px] items-start shrink-0">

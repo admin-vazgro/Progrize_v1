@@ -28,7 +28,7 @@ export default function WaitlistForm() {
 
   if (state === "done") {
     return (
-      <div className="flex items-center gap-2 px-5 py-3 rounded-lg bg-[#c1cc5a]/20 border border-[#c1cc5a]/40 text-[#c1cc5a] text-sm font-medium">
+      <div className="flex items-center gap-2 rounded-lg border border-[#9eb335]/40 bg-[#c6f46b]/20 px-5 py-3 text-sm font-medium text-[#3d4b16]">
         ✓ You&apos;re on the list. We&apos;ll reach out when your feature ships.
       </div>
     );
@@ -36,26 +36,26 @@ export default function WaitlistForm() {
 
   if (state === "already") {
     return (
-      <div className="flex items-center gap-2 px-5 py-3 rounded-lg bg-[#dee2df]/10 border border-[#dee2df]/20 text-[#dee2df]/70 text-sm">
+      <div className="flex items-center gap-2 rounded-lg border border-[#eceae3] bg-white/60 px-5 py-3 text-sm text-[#5f5d54]">
         You&apos;re already on the list.
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md">
+    <form onSubmit={handleSubmit} className="relative flex w-full max-w-md flex-col gap-2 sm:flex-row">
       <input
         type="email"
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="your@email.com"
-        className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-[#dee2df]/40 text-sm outline-none focus:border-[#c1cc5a]/60 transition-colors"
+        className="min-w-0 flex-1 rounded-lg border border-[#d8d5ca] bg-white px-4 py-3 text-sm text-[#26251f] outline-none transition-colors placeholder:text-[#8a877b] focus:border-[#9eb335]"
       />
       <button
         type="submit"
         disabled={state === "loading"}
-        className="flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#c1cc5a] text-[#0a2412] text-sm font-bold hover:bg-[#c1cc5a]/90 transition-colors disabled:opacity-60 whitespace-nowrap"
+        className="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[#161611] px-5 py-3 text-sm font-bold text-[#fafaf8] transition-colors hover:bg-[#26251f] disabled:opacity-60"
       >
         {state === "loading" ? "Joining…" : <>Join waitlist <ArrowRight className="w-4 h-4" /></>}
       </button>

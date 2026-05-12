@@ -153,8 +153,8 @@ export default function LandingPage() {
       <ParallaxAura />
 
       {/* ── Nav ── */}
-      <header className="sticky top-0 z-50 px-3 pt-4 md:px-6">
-        <div className="mx-auto flex h-[66px] max-w-[1180px] items-center justify-between rounded-full border border-white/75 bg-[rgba(250,250,248,0.74)] px-4 shadow-[0_18px_55px_rgba(24,24,18,0.10),inset_0_1px_0_rgba(255,255,255,0.92)] backdrop-blur-xl md:px-7">
+      <header className="sticky top-0 z-50 px-3 pt-3 md:px-6 md:pt-4">
+        <div className="mx-auto flex h-[58px] max-w-[1180px] items-center justify-between rounded-full border border-white/75 bg-[rgba(250,250,248,0.74)] px-3 shadow-[0_18px_55px_rgba(24,24,18,0.10),inset_0_1px_0_rgba(255,255,255,0.92)] backdrop-blur-xl sm:h-[66px] sm:px-4 md:px-7">
           <Link href="/" className="flex items-end gap-px shrink-0" aria-label="Progrize home">
             <div className="bg-[#1c1c1c] rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 11, height: 15 }} />
             <div className="bg-[#1c1c1c] rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 15, height: 28 }} />
@@ -170,9 +170,9 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/login" className="hidden text-[13px] leading-[20px] text-[#5f5d54] transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#161611] focus-visible:outline-none focus-visible:text-[#161611] sm:block">Sign in</Link>
-            <Link href="/signup" className="group flex h-[44px] items-center gap-2 rounded-full bg-[#161611] py-1 pl-5 pr-1 text-[13px] leading-[20px] text-[#fafaf8] shadow-[0_12px_28px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2">
+            <Link href="/signup" className="group flex h-[42px] items-center gap-2 rounded-full bg-[#161611] py-1 pl-4 pr-1 text-[12px] leading-[20px] text-[#fafaf8] shadow-[0_12px_28px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2 sm:h-[44px] sm:pl-5 sm:text-[13px]">
               Start free
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/12 text-[15px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5 group-hover:-translate-y-px">↗</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/12 text-[15px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5 group-hover:-translate-y-px sm:h-9 sm:w-9">↗</span>
             </Link>
           </div>
         </div>
@@ -183,41 +183,41 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             HERO
         ══════════════════════════════════════════ */}
-        <section className="overflow-hidden pt-8" aria-label="Hero">
-          <div className="flex flex-col items-center gap-[34px] px-6 pb-10 pt-[46px] text-center md:pt-[76px]">
+        <section className="overflow-hidden pt-4 md:pt-8" aria-label="Hero">
+          <div className="flex flex-col items-center gap-6 px-4 pb-8 pt-9 text-center sm:px-6 md:gap-[34px] md:pb-10 md:pt-[76px]">
             <div className="flex flex-col items-center">
-              <p className="animate-landing-up mb-4 rounded-full border border-white/75 bg-white/56 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-[#6d6a5f] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_10px_24px_rgba(24,24,18,0.05)]" style={{ animationDelay: "0ms" }}>
+              <p className="animate-landing-up mb-4 max-w-full rounded-full border border-white/75 bg-white/56 px-3 py-2 text-[9px] font-medium uppercase tracking-[0.16em] text-[#6d6a5f] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_10px_24px_rgba(24,24,18,0.05)] sm:px-4 sm:text-[10px] sm:tracking-[0.2em]" style={{ animationDelay: "0ms" }}>
                 AI career operating system
               </p>
-              <p className="animate-landing-up font-extralight text-[clamp(36px,5.5vw,64px)] leading-[1.05] text-[#26251f] tracking-[0.32px]" style={{ animationDelay: "0ms" }}>
+              <p className="animate-landing-up font-extralight text-[clamp(30px,9vw,64px)] leading-[1.05] text-[#26251f] tracking-[0.32px]" style={{ animationDelay: "0ms" }}>
                 A new era of
               </p>
-              <h1 className="animate-landing-up max-w-[1080px] font-light text-[clamp(56px,9vw,124px)] leading-[0.84] text-[#161611] tracking-[-0.075em]" style={{ animationDelay: "80ms" }}>
+              <h1 className="animate-landing-up max-w-[1080px] font-light text-[clamp(44px,13vw,124px)] leading-[0.9] text-[#161611] tracking-[-0.055em] md:leading-[0.84] md:tracking-[-0.075em]" style={{ animationDelay: "80ms" }}>
                 Career &amp; Networking
               </h1>
             </div>
 
-            <p className="animate-landing-up max-w-[560px] text-[16px] leading-[27px] tracking-[-0.08px] text-[#5f5d54]" style={{ animationDelay: "180ms" }}>
+            <p className="animate-landing-up max-w-[560px] text-[15px] leading-[25px] tracking-[-0.08px] text-[#5f5d54] sm:text-[16px] sm:leading-[27px]" style={{ animationDelay: "180ms" }}>
               Upload your CV once. Get an instant AI fit score and ATS analysis for any role. Have it auto-tailored to match, then download and apply.
             </p>
 
             <Link
               href="/signup"
-              className="group animate-landing-up flex h-[56px] shrink-0 items-center gap-3 rounded-full bg-[#161611] py-1 pl-7 pr-1.5 text-[15px] leading-[24px] text-[#fafaf8] shadow-[0_18px_40px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2"
+              className="group animate-landing-up flex h-[52px] shrink-0 items-center gap-3 rounded-full bg-[#161611] py-1 pl-6 pr-1.5 text-[14px] leading-[24px] text-[#fafaf8] shadow-[0_18px_40px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2 sm:h-[56px] sm:pl-7 sm:text-[15px]"
               style={{ animationDelay: "260ms" }}
             >
               Get started free
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/12 text-[17px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 group-hover:-translate-y-px">↗</span>
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/12 text-[17px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 group-hover:-translate-y-px sm:h-11 sm:w-11">↗</span>
             </Link>
           </div>
 
-          <div className="animate-landing-up mx-3 rounded-[54px] border border-white/75 bg-white/45 p-2 shadow-[0_32px_100px_rgba(24,24,18,0.16),inset_0_1px_0_rgba(255,255,255,0.9)] md:mx-6 md:rounded-[88px] md:p-3" style={{ animationDelay: "340ms" }}>
-            <div className="overflow-hidden rounded-[44px] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] md:rounded-[74px]" style={{ maxHeight: "58vh" }}>
+          <div className="animate-landing-up mx-3 rounded-[30px] border border-white/75 bg-white/45 p-1.5 shadow-[0_32px_100px_rgba(24,24,18,0.16),inset_0_1px_0_rgba(255,255,255,0.9)] sm:rounded-[54px] sm:p-2 md:mx-6 md:rounded-[88px] md:p-3" style={{ animationDelay: "340ms" }}>
+            <div className="overflow-hidden rounded-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:rounded-[44px] md:rounded-[74px]" style={{ maxHeight: "58vh" }}>
               <ParallaxLayer distance={46} reverse scale className="h-full">
                 <img
                   src="/hero-community.png"
                   alt="A vibrant community of career-focused professionals"
-                  className="block h-full w-full scale-[1.06] object-cover"
+                  className="block h-[42vh] min-h-[260px] w-full scale-[1.06] object-cover sm:h-full"
                   style={{ objectPosition: "center 6%" }}
                 />
               </ParallaxLayer>
@@ -239,11 +239,11 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             HOW IT WORKS
         ══════════════════════════════════════════ */}
-        <section id="how" className="py-20 md:py-28" aria-labelledby="how-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <AnimateOnScroll className="mb-16">
+        <section id="how" className="py-14 md:py-28" aria-labelledby="how-heading">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <AnimateOnScroll className="mb-10 md:mb-16">
               <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Simple by design</p>
-              <h2 id="how-heading" className="font-light text-[clamp(40px,5vw,64px)] leading-[1.05] text-[#161611] tracking-[-0.04em]">
+              <h2 id="how-heading" className="font-light text-[clamp(32px,10vw,64px)] leading-[1.05] text-[#161611] tracking-[-0.035em] md:tracking-[-0.04em]">
                 From CV upload<br />to tailored application<br />in three steps.
               </h2>
             </AnimateOnScroll>
@@ -276,7 +276,7 @@ export default function LandingPage() {
                 },
               ].map(({ n, title, desc, tag, delay, miniature }) => (
                 <AnimateOnScroll key={n} delay={delay} threshold={0.08}>
-                  <div className="h-full bg-[#fbfaf7] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white md:p-10">
+                  <div className="h-full bg-[#fbfaf7] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white sm:p-8 md:p-10">
                     <div className="relative mb-10 h-[168px]">
                       <p className="absolute left-0 top-0 w-[112px] font-extralight text-[80px] leading-none text-[#eceae3] tracking-[-0.04em] tabular-nums">{n}</p>
                       <div className="absolute right-0 top-0 flex w-[128px] flex-col items-center">
@@ -298,13 +298,13 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             FEATURE 1 — AI Fit Score + ATS Analysis
         ══════════════════════════════════════════ */}
-        <section id="features" className="py-20 md:py-28" aria-labelledby="analysis-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
+        <section id="features" className="py-14 md:py-28" aria-labelledby="analysis-heading">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <div className="grid gap-10 md:grid-cols-2 md:gap-16 items-center">
 
               <AnimateOnScroll>
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">AI Analysis</p>
-                <h2 id="analysis-heading" className="font-light text-[clamp(36px,4.5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em] mb-6">
+                <h2 id="analysis-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] mb-6 md:tracking-[-0.04em]">
                   Know your chances<br />before you apply.
                 </h2>
                 <p className="text-[16px] leading-[26px] text-[#5f5d54] tracking-[-0.08px] mb-8 max-w-[420px]">
@@ -341,8 +341,8 @@ export default function LandingPage() {
             FEATURE 2 — CV Tailoring
         ══════════════════════════════════════════ */}
         <section className="py-14 md:py-20" aria-labelledby="tailor-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <div className="grid gap-10 md:grid-cols-2 md:gap-16 items-center">
 
               {/* Light mock — before/after */}
               <AnimateOnScroll className="order-2 md:order-1">
@@ -373,9 +373,9 @@ export default function LandingPage() {
                     <p className="text-[10px] text-[#8a877b] mb-2">New headline</p>
                     <p className="text-[13px] text-[#26251f]">Senior Product Designer | Design Systems · Figma · B2B SaaS</p>
                   </div>
-                  <div className="relative mt-3 flex items-center justify-between rounded-[22px] border border-[#e8e4d9] bg-[#fdfcf9] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_12px_26px_rgba(29,28,21,0.05)]">
+                  <div className="relative mt-3 flex flex-col gap-3 rounded-[22px] border border-[#e8e4d9] bg-[#fdfcf9] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_12px_26px_rgba(29,28,21,0.05)] sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-[12px] text-[#8a877b]">Tailored CV ready</p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {["Word (.docx)", "PDF"].map((fmt) => (
                         <span key={fmt} className="flex items-center gap-1 rounded-full bg-[#161611] px-3 py-1.5 text-[11px] text-[#fafaf8] shadow-[0_10px_18px_rgba(22,22,17,0.22),inset_0_1px_0_rgba(255,255,255,0.16)]">
                           <Download className="w-3 h-3" /> {fmt}
@@ -389,7 +389,7 @@ export default function LandingPage() {
 
               <AnimateOnScroll delay={150} className="order-1 md:order-2">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">AI CV Tailoring</p>
-                <h2 id="tailor-heading" className="font-light text-[clamp(36px,4.5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em] mb-6">
+                <h2 id="tailor-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] mb-6 md:tracking-[-0.04em]">
                   Your CV, rewritten<br />for every role.<br />In one click.
                 </h2>
                 <p className="text-[16px] leading-[26px] text-[#5f5d54] tracking-[-0.08px] mb-8 max-w-[420px]">
@@ -422,18 +422,18 @@ export default function LandingPage() {
             FEATURE 3 — Live Job Feed
         ══════════════════════════════════════════ */}
         <section className="py-14 md:py-20" aria-labelledby="jobs-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <div className="grid md:grid-cols-2 gap-16 items-start">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <div className="grid gap-10 md:grid-cols-2 md:gap-16 items-start">
 
               <AnimateOnScroll>
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Live Job Feed</p>
-                <h2 id="jobs-heading" className="font-light text-[clamp(36px,4.5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em] mb-6">
+                <h2 id="jobs-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] mb-6 md:tracking-[-0.04em]">
                   Browse 10,000+ live roles.<br />Analyze any one<br />instantly.
                 </h2>
                 <p className="text-[16px] leading-[26px] text-[#5f5d54] tracking-[-0.08px] mb-8 max-w-[420px]">
                   Search by keyword and location. Filter by remote, full-time, part-time, or salary band. Open any listing and hit Analyze: your fit score and ATS breakdown appear in seconds.
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {[
                     { label: "Remote filter", detail: "Find fully remote and hybrid roles instantly." },
                     { label: "Salary bands", detail: "Filter by £50k+, £70k+, or £100k+ in one click." },
@@ -452,9 +452,9 @@ export default function LandingPage() {
               <AnimateOnScroll delay={150} className="flex flex-col gap-2.5">
                 <ParallaxLayer distance={28}>
                 <div className="rounded-[26px] border border-white/80 bg-[#f7f6f1] p-3 shadow-[0_28px_70px_rgba(24,24,18,0.12),0_8px_22px_rgba(24,24,18,0.07),inset_0_1px_0_rgba(255,255,255,0.95)]">
-                <div className="relative mb-3 flex items-center gap-2 rounded-[20px] border border-[#e7e3d8] bg-[#fbfaf7] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_10px_24px_rgba(29,28,21,0.04)]">
+                <div className="relative mb-3 flex flex-wrap items-center gap-2 rounded-[20px] border border-[#e7e3d8] bg-[#fbfaf7] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_10px_24px_rgba(29,28,21,0.04)]">
                   <div className="pointer-events-none absolute inset-x-6 top-0 h-8 rounded-full bg-white/80 blur-xl" />
-                  <span className="flex-1 text-[12px] text-[#8a877b] px-2">Product Designer · London</span>
+                  <span className="relative min-w-full flex-1 px-2 text-[12px] text-[#8a877b] sm:min-w-0">Product Designer · London</span>
                   {["remote", "full-time", "£70k+"].map((chip) => (
                     <span key={chip} className={`relative rounded-full px-3 py-1 text-[11px] ${chip === "remote" ? "bg-[#161611] text-[#fafaf8] shadow-[0_10px_18px_rgba(22,22,17,0.22),inset_0_1px_0_rgba(255,255,255,0.16)]" : "border border-[#e7e3d8] bg-white text-[#5f5d54] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_6px_14px_rgba(24,24,18,0.05)]"}`}>
                       {chip}
@@ -468,7 +468,7 @@ export default function LandingPage() {
                       { company: "Figma", role: "Senior UX Designer", location: "London · Hybrid", salary: "£75k–£95k", score: 71, posted: "1d ago" },
                       { company: "Linear", role: "Product Designer", location: "Remote · Full-time", salary: "£65k–£85k", score: 85, posted: "today" },
                     ].map(({ company, role, location, salary, score, posted }) => (
-                      <div key={role} className="relative flex items-start gap-3 rounded-[22px] border border-[#e7e3d8] bg-white p-4 shadow-[0_18px_38px_rgba(32,31,24,0.10),0_3px_0_rgba(255,255,255,0.95)_inset]">
+                      <div key={role} className="relative flex flex-wrap items-start gap-3 rounded-[22px] border border-[#e7e3d8] bg-white p-4 shadow-[0_18px_38px_rgba(32,31,24,0.10),0_3px_0_rgba(255,255,255,0.95)_inset] sm:flex-nowrap">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] bg-[#f5f3ed] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_10px_20px_rgba(24,24,18,0.12)]">
                           <CompanyLogo company={company} />
                         </div>
@@ -477,7 +477,7 @@ export default function LandingPage() {
                           <p className="text-[12px] text-[#5f5d54]">{company} · {location}</p>
                           <p className="text-[12px] text-[#8a877b]">{salary} · {posted}</p>
                         </div>
-                        <div className="flex shrink-0 flex-col items-end gap-2">
+                        <div className="ml-[56px] flex shrink-0 flex-row items-center gap-2 sm:ml-0 sm:flex-col sm:items-end">
                           <span className="rounded-full bg-[#dff8a8] px-2.5 py-1 text-[11px] text-[#3d3c36] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_5px_12px_rgba(126,154,55,0.12)]">
                             {score}% fit
                           </span>
@@ -499,8 +499,8 @@ export default function LandingPage() {
             FEATURE 4 — Application Tracker
         ══════════════════════════════════════════ */}
         <section className="py-14 md:py-20" aria-labelledby="tracker-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <div className="grid md:grid-cols-2 gap-16 items-start">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <div className="grid gap-10 md:grid-cols-2 md:gap-16 items-start">
 
               {/* Light kanban mock */}
               <AnimateOnScroll className="order-2 md:order-1">
@@ -509,7 +509,8 @@ export default function LandingPage() {
                   <div className="pointer-events-none absolute inset-x-8 top-0 h-12 rounded-full bg-white/80 blur-2xl" />
                   <p className="relative text-[10px] font-mono text-[#8a877b] mb-4">your tracker</p>
 
-                  <div className="relative grid grid-cols-5 gap-2">
+                  <div className="no-scrollbar relative overflow-x-auto">
+                  <div className="grid min-w-0 grid-cols-2 gap-2 sm:min-w-[520px] sm:grid-cols-5">
                     {[
                       { label: "saved", count: 4, cards: [{ co: "Figma", role: "Sr. UX" }, { co: "Notion", role: "PM" }] },
                       { label: "applied", count: 3, cards: [{ co: "Linear", role: "Designer" }] },
@@ -536,13 +537,14 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
+                  </div>
                 </div>
                 </ParallaxLayer>
               </AnimateOnScroll>
 
               <AnimateOnScroll delay={150} className="order-1 md:order-2">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Application Tracker</p>
-                <h2 id="tracker-heading" className="font-light text-[clamp(36px,4.5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em] mb-6">
+                <h2 id="tracker-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] mb-6 md:tracking-[-0.04em]">
                   Every application.<br />One Kanban board.
                 </h2>
                 <p className="text-[16px] leading-[26px] text-[#5f5d54] tracking-[-0.08px] mb-8 max-w-[420px]">
@@ -556,9 +558,9 @@ export default function LandingPage() {
                     "Add any job manually with salary, location, and notes",
                     "Pipeline summary on your dashboard at a glance",
                   ].map((t) => (
-                    <li key={t} className="flex gap-3 text-[14px] text-[#5f5d54]">
+                    <li key={t} className="flex min-w-0 gap-3 text-[14px] text-[#5f5d54]">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#c6f46b] mt-[7px] shrink-0" />
-                      {t}
+                      <span className="min-w-0 leading-[22px]">{t}</span>
                     </li>
                   ))}
                 </ul>
@@ -570,13 +572,13 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             FEATURE 5 — Community + Network
         ══════════════════════════════════════════ */}
-        <section className="py-20 md:py-28" aria-labelledby="community-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <div className="grid md:grid-cols-2 gap-16 items-start">
+        <section className="py-14 md:py-28" aria-labelledby="community-heading">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <div className="grid gap-10 md:grid-cols-2 md:gap-16 items-start">
 
               <AnimateOnScroll>
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Community & Network</p>
-                <h2 id="community-heading" className="font-light text-[clamp(36px,4.5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em] mb-6">
+                <h2 id="community-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] mb-6 md:tracking-[-0.04em]">
                   Find insiders<br />at your target<br />companies.
                 </h2>
                 <p className="text-[16px] leading-[26px] text-[#5f5d54] tracking-[-0.08px] mb-8 max-w-[420px]">
@@ -613,7 +615,7 @@ export default function LandingPage() {
                     { name: "Data Scientists", members: 1983, posts: 224, tag: "Data", joined: false },
                     { name: "Career Changers", members: 5312, posts: 1024, tag: "General", joined: false },
                   ].map(({ name, members, posts, tag, joined }) => (
-                    <div key={name} className="relative flex items-center gap-4 rounded-[22px] border border-[#e7e3d8] bg-white p-4 shadow-[0_18px_38px_rgba(32,31,24,0.10),0_3px_0_rgba(255,255,255,0.95)_inset]">
+                    <div key={name} className="relative flex flex-wrap items-center gap-3 rounded-[22px] border border-[#e7e3d8] bg-white p-4 shadow-[0_18px_38px_rgba(32,31,24,0.10),0_3px_0_rgba(255,255,255,0.95)_inset] sm:flex-nowrap sm:gap-4">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] bg-[#f5f3ed] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_10px_20px_rgba(24,24,18,0.12)]">
                         <CommunityLogo tag={tag} />
                       </div>
@@ -621,7 +623,7 @@ export default function LandingPage() {
                         <p className="truncate text-[14px] text-[#26251f]">{name}</p>
                         <p className="text-[12px] text-[#8a877b]">{members.toLocaleString()} members · {posts} posts</p>
                       </div>
-                      <span className="shrink-0 rounded-full border border-[#e7e3d8] bg-white px-2.5 py-1 text-[10px] text-[#8a877b] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_6px_14px_rgba(24,24,18,0.05)]">{tag}</span>
+                      <span className="ml-[56px] shrink-0 rounded-full border border-[#e7e3d8] bg-white px-2.5 py-1 text-[10px] text-[#8a877b] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_6px_14px_rgba(24,24,18,0.05)] sm:ml-0">{tag}</span>
                       <button className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12px] ${joined ? "border border-[#e7e3d8] bg-white text-[#5f5d54] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_6px_14px_rgba(24,24,18,0.05)]" : "bg-[#161611] text-[#fafaf8] shadow-[0_10px_18px_rgba(22,22,17,0.22),inset_0_1px_0_rgba(255,255,255,0.16)]"}`}>
                         {joined ? "Leave" : "Join"}
                       </button>
@@ -637,17 +639,17 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             TESTIMONIALS
         ══════════════════════════════════════════ */}
-        <section className="py-16 md:py-24" aria-labelledby="testimonials-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <AnimateOnScroll className="mb-12">
+        <section className="py-14 md:py-24" aria-labelledby="testimonials-heading">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <AnimateOnScroll className="mb-10 md:mb-12">
               <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">What users say</p>
-              <h2 id="testimonials-heading" className="font-light text-[clamp(36px,5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em]">
+              <h2 id="testimonials-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] md:tracking-[-0.04em]">
                 They stopped guessing.<br />So did their recruiters.
               </h2>
             </AnimateOnScroll>
 
             <AnimateOnScroll delay={100} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="md:col-span-3 bg-[#fafaf8] border border-[#eceae3] rounded-2xl p-8 flex flex-col justify-between transition-colors duration-200 hover:bg-[#f5f3ed]">
+              <div className="md:col-span-3 bg-[#fafaf8] border border-[#eceae3] rounded-2xl p-6 sm:p-8 flex flex-col justify-between transition-colors duration-200 hover:bg-[#f5f3ed]">
                 <div className="flex gap-0.5 mb-6">
                   {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-[#c6f46b] text-[#c6f46b]" />)}
                 </div>
@@ -690,11 +692,11 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             FULL FEATURE LIST
         ══════════════════════════════════════════ */}
-        <section className="py-16 md:py-24" aria-labelledby="all-features-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <AnimateOnScroll className="mb-12">
+        <section className="py-14 md:py-24" aria-labelledby="all-features-heading">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <AnimateOnScroll className="mb-10 md:mb-12">
               <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Everything included</p>
-              <h2 id="all-features-heading" className="font-light text-[clamp(36px,5vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.04em]">
+              <h2 id="all-features-heading" className="font-light text-[clamp(32px,9vw,56px)] leading-[1.05] text-[#161611] tracking-[-0.035em] md:tracking-[-0.04em]">
                 One platform.<br />Every tool your<br />job search needs.
               </h2>
             </AnimateOnScroll>
@@ -702,7 +704,7 @@ export default function LandingPage() {
             <AnimateOnScroll delay={80} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
 
               {/* AI Suite — full-width combined card */}
-              <div className="relative border-t border-[#eceae3] px-7 py-8 md:px-8 lg:px-10 lg:col-span-6 lg:border-l-0">
+              <div className="relative border-t border-[#eceae3] px-5 py-7 sm:px-7 sm:py-8 md:px-8 lg:px-10 lg:col-span-6 lg:border-l-0">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                   <div>
                     <div className="flex items-center gap-3 mb-6">
@@ -712,7 +714,7 @@ export default function LandingPage() {
                     <h3 className="mb-3 text-[16px] leading-[22px] text-[#26251f]">AI-Powered CV Suite</h3>
                     <p className="text-[13px] leading-[20px] text-[#5f5d54] max-w-[420px]">Upload your CV once. AI parses it, scores it against any job description, checks ATS compatibility, and rewrites your bullets in one click.</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 shrink-0 lg:w-[380px]">
+                  <div className="grid w-full grid-cols-1 gap-2 shrink-0 sm:grid-cols-2 lg:w-[380px]">
                     {[
                       { icon: Upload,   label: "CV Parsing",              sub: "PDF or DOCX in under 30s" },
                       { icon: Target,   label: "Fit Score Analysis",      sub: "0–100 score per job" },
@@ -741,7 +743,7 @@ export default function LandingPage() {
               ].map(({ icon: Icon, tag, title, desc, colSpan, borderL }, i) => (
                 <div
                   key={title}
-                  className={`relative min-h-[204px] border-t border-[#eceae3] px-7 py-8 md:px-8 lg:px-8 ${colSpan} ${
+                  className={`relative min-h-[204px] border-t border-[#eceae3] px-5 py-7 sm:px-7 sm:py-8 md:px-8 lg:px-8 ${colSpan} ${
                     i % 2 === 1 ? "md:border-l md:border-l-[#eceae3]" : ""
                   } ${borderL ? "lg:border-l lg:border-l-[#eceae3]" : "lg:border-l-0"}`}
                 >
@@ -762,16 +764,16 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             WAITLIST / ROADMAP
         ══════════════════════════════════════════ */}
-        <section className="py-16 md:py-20" aria-labelledby="roadmap-heading">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-10">
-            <AnimateOnScroll className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-12">
+        <section className="py-14 md:py-20" aria-labelledby="roadmap-heading">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10">
+            <AnimateOnScroll className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-10 md:mb-12">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Coming soon</p>
-                <h2 id="roadmap-heading" className="font-light text-[clamp(32px,4.5vw,52px)] leading-[1.05] text-[#161611] tracking-[-0.04em]">
+                <h2 id="roadmap-heading" className="font-light text-[clamp(30px,8.5vw,52px)] leading-[1.05] text-[#161611] tracking-[-0.035em] md:tracking-[-0.04em]">
                   The platform is getting sharper.<br />Early users shape what ships next.
                 </h2>
               </div>
-              <div className="shrink-0">
+              <div className="w-full shrink-0 md:w-auto">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Be first when these ship</p>
                 <WaitlistForm />
               </div>
@@ -799,22 +801,22 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════
             CTA
         ══════════════════════════════════════════ */}
-        <section className="px-3 py-20 md:px-6 md:py-28" aria-labelledby="cta-heading">
-          <div className="mx-auto max-w-[1280px] rounded-[38px] border border-[#d7f5a0] bg-[#c6f46b] p-6 shadow-[0_30px_90px_rgba(101,135,24,0.20),inset_0_1px_0_rgba(255,255,255,0.55)] md:p-10">
+        <section className="px-3 py-14 md:px-6 md:py-28" aria-labelledby="cta-heading">
+          <div className="mx-auto max-w-[1280px] rounded-[28px] border border-[#d7f5a0] bg-[#c6f46b] p-5 shadow-[0_30px_90px_rgba(101,135,24,0.20),inset_0_1px_0_rgba(255,255,255,0.55)] sm:rounded-[38px] sm:p-6 md:p-10">
             <AnimateOnScroll className="flex flex-col items-start justify-between gap-10 md:flex-row md:items-end">
               <div>
                 <p className="text-[13px] leading-[19px] text-[#26251f]/50 mb-6">Free, no card needed</p>
-                <h2 id="cta-heading" className="font-light text-[clamp(48px,7vw,96px)] text-[#161611] tracking-[-0.05em] leading-[0.92]">
+                <h2 id="cta-heading" className="font-light text-[clamp(38px,11vw,96px)] text-[#161611] tracking-[-0.045em] leading-[0.95] md:leading-[0.92] md:tracking-[-0.05em]">
                   Upload your CV.<br />Know your score.
                 </h2>
               </div>
-              <div className="shrink-0 flex flex-col items-start md:items-end gap-4">
+              <div className="flex w-full shrink-0 flex-col items-start gap-4 md:w-auto md:items-end">
                 <p className="text-[14px] leading-[22px] text-[#26251f]/60 max-w-[280px] md:text-right">
                   AI fit scores, ATS analysis, one-click CV tailoring, live job feed, application tracker, community, and professional networking: all in one platform.
                 </p>
-                <Link href="/signup" className="group flex h-[56px] items-center gap-3 rounded-full bg-[#161611] py-1 pl-7 pr-1.5 text-[15px] text-[#fafaf8] shadow-[0_18px_40px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2">
+                <Link href="/signup" className="group flex h-[52px] items-center gap-3 rounded-full bg-[#161611] py-1 pl-6 pr-1.5 text-[14px] text-[#fafaf8] shadow-[0_18px_40px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2 sm:h-[56px] sm:pl-7 sm:text-[15px]">
                   Get started for free
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/12 text-[17px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 group-hover:-translate-y-px">↗</span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/12 text-[17px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 group-hover:-translate-y-px sm:h-11 sm:w-11">↗</span>
                 </Link>
               </div>
             </AnimateOnScroll>
@@ -825,8 +827,8 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="px-3 pb-6 md:px-6" aria-label="Site footer">
-        <div className="mx-auto max-w-[1280px] rounded-[32px] border border-white/70 bg-white/58 px-6 py-10 shadow-[0_20px_60px_rgba(24,24,18,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] md:px-10">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="mx-auto max-w-[1280px] rounded-[28px] border border-white/70 bg-white/58 px-5 py-8 shadow-[0_20px_60px_rgba(24,24,18,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] sm:rounded-[32px] sm:px-6 sm:py-10 md:px-10">
+        <div className="grid grid-cols-1 gap-8 min-[420px]:grid-cols-2 md:grid-cols-4">
           <div>
             <div className="flex items-end gap-px">
               <div className="bg-[#1c1c1c] rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 9, height: 12 }} />

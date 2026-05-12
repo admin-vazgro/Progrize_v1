@@ -26,8 +26,8 @@ function AnimatedBar({ label, value, active, delay = 0 }: {
   delay?: number;
 }) {
   return (
-    <div className="group flex items-center gap-3">
-      <span className="w-[104px] shrink-0 font-mono text-[9px] uppercase tracking-[0.08em] text-[#8a877b]">{label}</span>
+    <div className="group flex items-center gap-2 sm:gap-3">
+      <span className="w-[82px] shrink-0 font-mono text-[8px] uppercase tracking-[0.06em] text-[#8a877b] sm:w-[104px] sm:text-[9px] sm:tracking-[0.08em]">{label}</span>
       <div className="relative h-[6px] flex-1 overflow-hidden rounded-full bg-[#eceae3] shadow-[inset_0_1px_2px_rgba(22,22,17,0.08)]">
         <div
           className="h-full rounded-full bg-[linear-gradient(90deg,#a8ee35,#c6f46b_58%,#e5ff91)] shadow-[0_0_18px_rgba(198,244,107,0.42)]"
@@ -71,10 +71,10 @@ export function AnimatedScoreMock() {
   const ats = useCountUp(68, 1200, active);
 
   return (
-    <div ref={ref} className="rounded-[2rem] border border-[#eceae3] bg-[#f5f4ef] p-2 shadow-[0_28px_90px_rgba(22,22,17,0.10)]">
-      <div className="relative overflow-hidden rounded-[1.55rem] border border-white bg-white p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)]">
+    <div ref={ref} className="rounded-[1.5rem] border border-[#eceae3] bg-[#f5f4ef] p-1.5 shadow-[0_28px_90px_rgba(22,22,17,0.10)] sm:rounded-[2rem] sm:p-2">
+      <div className="relative overflow-hidden rounded-[1.15rem] border border-white bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] sm:rounded-[1.55rem] sm:p-6">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_18%_0%,rgba(198,244,107,0.22),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(236,234,227,0.82),transparent_38%)]" />
-        <div className="relative mb-5 flex items-center justify-between gap-4">
+        <div className="relative mb-5 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#8a877b]">
             analysis result
           </p>
@@ -83,17 +83,17 @@ export function AnimatedScoreMock() {
           </span>
         </div>
 
-        <div className="relative mb-6 grid grid-cols-2 gap-3">
+        <div className="relative mb-6 grid grid-cols-2 gap-2 sm:gap-3">
           {[
             { label: "Fit Score",  value: fit, sub: "Strong match", tone: "bg-[#c6f46b]" },
             { label: "ATS Score",  value: ats, sub: "Good — improvable", tone: "bg-[#f0eee7]" },
           ].map(({ label, value, sub, tone }) => (
-            <div key={label} className="rounded-[1.25rem] border border-[#eceae3] bg-[#fafaf8] p-4 shadow-[0_10px_28px_rgba(22,22,17,0.05)]">
+            <div key={label} className="rounded-[1.1rem] border border-[#eceae3] bg-[#fafaf8] p-3 shadow-[0_10px_28px_rgba(22,22,17,0.05)] sm:rounded-[1.25rem] sm:p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-[10px] text-[#8a877b]">{label}</p>
                 <span className={`h-2 w-2 rounded-full ${tone}`} />
               </div>
-              <p className="mb-1 font-light text-[54px] leading-none tracking-[-0.05em] text-[#161611] tabular-nums">
+              <p className="mb-1 font-light text-[42px] leading-none tracking-[-0.05em] text-[#161611] tabular-nums sm:text-[54px]">
                 {value}
               </p>
               <p className="text-[10px] text-[#8a877b]">{sub}</p>
