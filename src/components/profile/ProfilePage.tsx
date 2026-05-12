@@ -6,6 +6,8 @@ import type { Database } from "@/types/database";
 import EditProfileModal from "./EditProfileModal";
 import ExperienceModal from "./ExperienceModal";
 import EducationModal from "./EducationModal";
+import ProjectModal from "./ProjectModal";
+import CertificationModal from "./CertificationModal";
 import SkillsModal from "./SkillsModal";
 import NetworkingModal from "./NetworkingModal";
 import CVUploadModal from "./CVUploadModal";
@@ -13,7 +15,10 @@ import CVUploadModal from "./CVUploadModal";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type ExperienceItem = Database["public"]["Tables"]["experience_items"]["Row"];
 type EducationItem = Database["public"]["Tables"]["education_items"]["Row"];
+type CertificationItem = Database["public"]["Tables"]["certifications"]["Row"];
+type ProjectItem = Database["public"]["Tables"]["profile_projects"]["Row"];
 type ResumeFile = Pick<Database["public"]["Tables"]["resume_files"]["Row"], "id" | "file_name" | "file_size_bytes" | "parse_status" | "uploaded_at">;
+type ProfileTab = "about" | "experience" | "education" | "projects" | "certifications";
 
 interface Room { id: string; name: string; slug: string; member_count: number; }
 
@@ -21,6 +26,8 @@ interface Props {
   profile: Profile | null;
   experience: ExperienceItem[];
   education: EducationItem[];
+  certifications: CertificationItem[];
+  projects: ProjectItem[];
   skills: string[];
   rooms: Room[];
   resumeFiles: ResumeFile[];
@@ -43,12 +50,14 @@ function fmtDate(dateStr: string | null) {
 
 export default function ProfilePage({
   profile: initialProfile, experience: initialExp, education: initialEdu,
-  skills: initialSkills, rooms: initialRooms, resumeFiles: initialCVs, userId,
+  certifications: initialCertifications, projects: initialProjects, skills: initialSkills, rooms: initialRooms, resumeFiles: initialCVs, userId,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"about" | "posts">("about");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("about");
   const [profileData, setProfileData] = useState<Profile | null>(initialProfile);
   const [expList, setExpList] = useState<ExperienceItem[]>(initialExp);
   const [eduList, setEduList] = useState<EducationItem[]>(initialEdu);
+  const [certList, setCertList] = useState<CertificationItem[]>(initialCertifications);
+  const [projectList, setProjectList] = useState<ProjectItem[]>(initialProjects);
   const [skillList, setSkillList] = useState<string[]>(initialSkills);
   const [cvList, setCvList] = useState<ResumeFile[]>(initialCVs);
 
@@ -57,6 +66,10 @@ export default function ProfilePage({
   const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
   const [showAddEdu, setShowAddEdu] = useState(false);
   const [editingEdu, setEditingEdu] = useState<EducationItem | null>(null);
+  const [showAddProject, setShowAddProject] = useState(false);
+  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const [showAddCert, setShowAddCert] = useState(false);
+  const [editingCert, setEditingCert] = useState<CertificationItem | null>(null);
   const [showSkills, setShowSkills] = useState(false);
   const [showNetworking, setShowNetworking] = useState(false);
   const [showCVUpload, setShowCVUpload] = useState(false);
@@ -98,6 +111,13 @@ export default function ProfilePage({
   const coverUrl = profileData?.cover_url ?? null;
   const currentRole = expList.find((e) => e.is_current) ?? expList[0];
   const isProfileComplete = !!(profileData?.full_name && profileData?.headline && expList.length > 0);
+  const tabs: { key: ProfileTab; label: string }[] = [
+    { key: "about", label: "About" },
+    { key: "experience", label: "Experience" },
+    { key: "education", label: "Education" },
+    { key: "projects", label: "Projects" },
+    { key: "certifications", label: "Certifications" },
+  ];
 
   function handleExpSave(item: ExperienceItem) {
     setExpList((prev) => {
@@ -110,6 +130,22 @@ export default function ProfilePage({
   function handleEduSave(item: EducationItem) {
     setEduList((prev) => {
       const idx = prev.findIndex((e) => e.id === item.id);
+      if (idx >= 0) { const next = [...prev]; next[idx] = item; return next; }
+      return [item, ...prev];
+    });
+  }
+
+  function handleProjectSave(item: ProjectItem) {
+    setProjectList((prev) => {
+      const idx = prev.findIndex((p) => p.id === item.id);
+      if (idx >= 0) { const next = [...prev]; next[idx] = item; return next; }
+      return [item, ...prev];
+    });
+  }
+
+  function handleCertSave(item: CertificationItem) {
+    setCertList((prev) => {
+      const idx = prev.findIndex((c) => c.id === item.id);
       if (idx >= 0) { const next = [...prev]; next[idx] = item; return next; }
       return [item, ...prev];
     });
@@ -201,20 +237,25 @@ export default function ProfilePage({
           )}
 
           {/* Tabs */}
-          <div className="inline-flex bg-white rounded-[20px] p-1 mb-4">
-            {(["about", "posts"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2 rounded-[14px] text-sm capitalize font-medium transition-colors ${
-                  activeTab === tab
-                    ? "bg-[#c1cc5a] text-[#0a2412]"
-                    : "text-[#4b4b4b] hover:bg-[#f0f0f0]"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+          <div className="mb-5 w-full overflow-x-auto border-b border-[#eceae3]">
+            <div className="inline-flex min-w-max items-end gap-10">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`relative pb-3 pt-1 text-sm font-medium transition-colors ${
+                    activeTab === tab.key
+                      ? "text-[#0a2412]"
+                      : "text-[#5f5d54] hover:text-[#0a2412]"
+                  }`}
+                >
+                  {tab.label}
+                  {activeTab === tab.key && (
+                    <span className="absolute bottom-[-1px] left-0 h-[2px] w-full bg-[#0a2412]" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeTab === "about" && (
@@ -226,8 +267,14 @@ export default function ProfilePage({
                   <p className="text-sm text-[#4b4b4b] leading-relaxed whitespace-pre-wrap">{summary}</p>
                 </div>
               )}
+              {!summary && (
+                <EmptySection title="No about section yet" description="Add a short summary so people understand your background and goals." actionLabel="Edit profile" onAction={() => setShowEditProfile(true)} />
+              )}
+            </div>
+          )}
 
-              {/* Experience */}
+          {activeTab === "experience" && (
+            <div className="animate-fade-up">
               <div className="bg-white rounded-[20px] overflow-hidden">
                 <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-[#f5f5f5]">
                   <h2 className="text-xs font-bold text-[#808080] uppercase tracking-wider">Experience</h2>
@@ -257,8 +304,11 @@ export default function ProfilePage({
                   </div>
                 )}
               </div>
+            </div>
+          )}
 
-              {/* Education */}
+          {activeTab === "education" && (
+            <div className="animate-fade-up">
               <div className="bg-white rounded-[20px] overflow-hidden">
                 <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-[#f5f5f5]">
                   <h2 className="text-xs font-bold text-[#808080] uppercase tracking-wider">Education</h2>
@@ -288,14 +338,74 @@ export default function ProfilePage({
                   </div>
                 )}
               </div>
-
             </div>
           )}
 
-          {activeTab === "posts" && (
-            <div className="bg-white rounded-[20px] px-7 py-16 text-center animate-fade-up">
-              <p className="text-sm font-medium text-[#292929] mb-1">No posts yet</p>
-              <p className="text-xs text-[#808080]">Your community posts will appear here.</p>
+          {activeTab === "projects" && (
+            <div className="animate-fade-up">
+              <div className="bg-white rounded-[20px] overflow-hidden">
+                <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-[#f5f5f5]">
+                  <h2 className="text-xs font-bold text-[#808080] uppercase tracking-wider">Projects</h2>
+                  <button
+                    onClick={() => setShowAddProject(true)}
+                    className="w-9 h-9 rounded-[8px] bg-[#f0f0f0] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-[#292929]" />
+                  </button>
+                </div>
+
+                {projectList.length === 0 ? (
+                  <div className="px-7 py-10 text-center">
+                    <p className="text-sm text-[#808080] mb-4">No projects added yet</p>
+                    <button
+                      onClick={() => setShowAddProject(true)}
+                      className="px-5 py-2.5 rounded-[10px] bg-[#c1cc5a] text-[#0a2412] text-sm font-semibold hover:bg-[#c1cc5a]/90 transition active:scale-[0.97]"
+                    >
+                      Add project
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 px-7 py-6 sm:grid-cols-2">
+                    {projectList.map((project) => (
+                      <ProjectCard key={project.id} project={project} onEdit={() => setEditingProject(project)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "certifications" && (
+            <div className="animate-fade-up">
+              <div className="bg-white rounded-[20px] overflow-hidden">
+                <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-[#f5f5f5]">
+                  <h2 className="text-xs font-bold text-[#808080] uppercase tracking-wider">Certifications</h2>
+                  <button
+                    onClick={() => setShowAddCert(true)}
+                    className="w-9 h-9 rounded-[8px] bg-[#f0f0f0] flex items-center justify-center hover:bg-[#e0e0e0] transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-[#292929]" />
+                  </button>
+                </div>
+
+                {certList.length === 0 ? (
+                  <div className="px-7 py-10 text-center">
+                    <p className="text-sm text-[#808080] mb-4">No certifications added yet</p>
+                    <button
+                      onClick={() => setShowAddCert(true)}
+                      className="px-5 py-2.5 rounded-[10px] bg-[#c1cc5a] text-[#0a2412] text-sm font-semibold hover:bg-[#c1cc5a]/90 transition active:scale-[0.97]"
+                    >
+                      Add certification
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-7 pb-4 divide-y divide-[#f5f5f5]">
+                    {certList.map((cert) => (
+                      <CertificationCard key={cert.id} cert={cert} onEdit={() => setEditingCert(cert)} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -410,6 +520,22 @@ export default function ProfilePage({
           onClose={() => { setShowAddEdu(false); setEditingEdu(null); }}
         />
       )}
+      {(showAddProject || editingProject) && (
+        <ProjectModal
+          item={editingProject}
+          onSave={handleProjectSave}
+          onDelete={(id) => setProjectList((prev) => prev.filter((p) => p.id !== id))}
+          onClose={() => { setShowAddProject(false); setEditingProject(null); }}
+        />
+      )}
+      {(showAddCert || editingCert) && (
+        <CertificationModal
+          item={editingCert}
+          onSave={handleCertSave}
+          onDelete={(id) => setCertList((prev) => prev.filter((c) => c.id !== id))}
+          onClose={() => { setShowAddCert(false); setEditingCert(null); }}
+        />
+      )}
       {showSkills && <SkillsModal skills={skillList} onUpdate={setSkillList} onClose={() => setShowSkills(false)} />}
       {showNetworking && <NetworkingModal profile={profileData} onSave={setProfileData} onClose={() => setShowNetworking(false)} />}
       {showCVUpload && (
@@ -488,6 +614,113 @@ function EducationCard({ edu, onEdit }: { edu: EducationItem; onEdit: () => void
       >
         Edit
       </button>
+    </div>
+  );
+}
+
+function ProjectCard({ project, onEdit }: { project: ProjectItem; onEdit: () => void }) {
+  return (
+    <div className="overflow-hidden rounded-[16px] border border-[#f0f0f0] bg-[#fafaf8]">
+      {project.image_url && (
+        <div
+          className="aspect-[16/10] bg-[#eceae3]"
+          style={{ backgroundImage: `url(${project.image_url})`, backgroundSize: "cover", backgroundPosition: "center" }}
+        />
+      )}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-base font-bold text-[#1c1c1c] leading-snug">{project.title}</p>
+            {project.description && (
+              <p className="mt-2 text-sm leading-relaxed text-[#4b4b4b]">{project.description}</p>
+            )}
+          </div>
+          <button
+            onClick={onEdit}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-[8px] bg-[#f7fcca] text-[#4b4b4b] hover:bg-[#eef9a0] transition-colors shrink-0 whitespace-nowrap"
+          >
+            Edit
+          </button>
+        </div>
+        {project.project_url && (
+          <a
+            href={project.project_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#0a2412] hover:underline"
+          >
+            Open project
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CertificationCard({ cert, onEdit }: { cert: CertificationItem; onEdit: () => void }) {
+  return (
+    <div className="py-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-base font-bold text-[#1c1c1c] leading-snug">{cert.name}</p>
+          {cert.issuer && (
+            <p className="text-sm text-[#4b4b4b] mt-0.5">{cert.issuer}</p>
+          )}
+          <p className="text-xs text-[#a0a0a0] mt-0.5">
+            {fmtDate(cert.issue_date)}
+            {cert.expiration_date ? ` - Expires ${fmtDate(cert.expiration_date)}` : ""}
+          </p>
+          {cert.credential_id && (
+            <p className="text-xs text-[#808080] mt-1">Credential ID: {cert.credential_id}</p>
+          )}
+        </div>
+        <div className="flex shrink-0 gap-2">
+          {cert.credential_url && (
+            <a
+              href={cert.credential_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium px-2.5 py-1.5 rounded-[8px] bg-[#f7fcca] text-[#4b4b4b] hover:bg-[#eef9a0] transition-colors whitespace-nowrap mt-0.5"
+            >
+              View
+            </a>
+          )}
+          <button
+            onClick={onEdit}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-[8px] bg-[#f7fcca] text-[#4b4b4b] hover:bg-[#eef9a0] transition-colors whitespace-nowrap mt-0.5"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptySection({
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="bg-white rounded-[20px] px-7 py-16 text-center">
+      <p className="text-sm font-medium text-[#292929] mb-1">{title}</p>
+      <p className="text-xs text-[#808080]">{description}</p>
+      {actionLabel && onAction && (
+        <button
+          onClick={onAction}
+          className="mt-4 px-5 py-2.5 rounded-[10px] bg-[#c1cc5a] text-[#0a2412] text-sm font-semibold hover:bg-[#c1cc5a]/90 transition active:scale-[0.97]"
+        >
+          {actionLabel}
+        </button>
+      )}
     </div>
   );
 }

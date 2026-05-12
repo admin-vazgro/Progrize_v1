@@ -128,7 +128,7 @@ export default function CommunityClient({
                   <h2 className="text-[32px] font-normal tracking-[-0.03em] text-[#0a2412] leading-none">
                     Hey, {firstName}!
                   </h2>
-                  <p className="text-[11px] font-light text-[#4b4b4b] mt-2 max-w-[343px] leading-relaxed">
+                  <p className="mt-3 max-w-[520px] text-[16px] font-normal leading-[1.45] text-[#4b4b4b]">
                     Share something with your community — questions, insights, milestones.
                   </p>
                 </div>

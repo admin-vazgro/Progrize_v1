@@ -198,6 +198,38 @@ export interface Database {
         Update: {
           name?: string;
           issuer?: string | null;
+          issue_date?: string | null;
+          expiration_date?: string | null;
+          credential_id?: string | null;
+          credential_url?: string | null;
+        };
+      };
+      profile_projects: {
+        Row: {
+          id: string;
+          user_id: string;
+          profile_id: string;
+          title: string;
+          description: string | null;
+          image_url: string | null;
+          project_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          profile_id: string;
+          title: string;
+          description?: string | null;
+          image_url?: string | null;
+          project_url?: string | null;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          image_url?: string | null;
+          project_url?: string | null;
         };
       };
       skills: {

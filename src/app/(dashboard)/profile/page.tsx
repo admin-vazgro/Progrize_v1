@@ -14,6 +14,8 @@ export default async function Profile() {
     { data: profile },
     { data: experience },
     { data: education },
+    { data: certifications },
+    { data: projects },
     { data: profileSkills },
     { data: resumeFiles },
     { data: rooms },
@@ -21,6 +23,8 @@ export default async function Profile() {
     sb.from("profiles").select("*").eq("id", user.id).single(),
     sb.from("experience_items").select("*").eq("user_id", user.id).order("sort_order"),
     sb.from("education_items").select("*").eq("user_id", user.id).order("start_date", { ascending: false }),
+    sb.from("certifications").select("*").eq("user_id", user.id).order("issue_date", { ascending: false }),
+    sb.from("profile_projects").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
     sb.from("profile_skills").select("*, skills(name, category)").eq("user_id", user.id),
     sb.from("resume_files").select("id, file_name, file_size_bytes, parse_status, uploaded_at, parsed_at").eq("user_id", user.id).order("uploaded_at", { ascending: false }),
     sb.from("room_members").select("rooms(id, name, slug, member_count)").eq("user_id", user.id).limit(5),
@@ -35,6 +39,8 @@ export default async function Profile() {
       profile={profile}
       experience={experience ?? []}
       education={education ?? []}
+      certifications={certifications ?? []}
+      projects={projects ?? []}
       skills={skills}
       rooms={userRooms}
       resumeFiles={resumeFiles ?? []}
