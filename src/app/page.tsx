@@ -155,10 +155,10 @@ export default function LandingPage() {
       {/* ── Nav ── */}
       <header className="sticky top-0 z-50 px-3 pt-3 md:px-6 md:pt-4">
         <div className="mx-auto flex h-[58px] max-w-[1180px] items-center justify-between rounded-full border border-white/75 bg-[rgba(250,250,248,0.74)] px-3 shadow-[0_18px_55px_rgba(24,24,18,0.10),inset_0_1px_0_rgba(255,255,255,0.92)] backdrop-blur-xl sm:h-[66px] sm:px-4 md:px-7">
-          <Link href="/" className="flex items-end gap-px shrink-0" aria-label="Progrize home">
-            <div className="bg-[#1c1c1c] rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 11, height: 15 }} />
-            <div className="bg-[#1c1c1c] rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 15, height: 28 }} />
-            <div className="bg-[#1c1c1c] rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 21, height: 41 }} />
+          <Link href="/" className="ml-2 flex shrink-0 items-end gap-px sm:ml-0" aria-label="Progrize home">
+            <div className="h-[11px] w-[8px] rounded-bl-[5px] rounded-tl-[58px] bg-[#1c1c1c] sm:h-[15px] sm:w-[11px]" />
+            <div className="h-[21px] w-[11px] rounded-bl-[5px] rounded-tl-[58px] bg-[#1c1c1c] sm:h-[28px] sm:w-[15px]" />
+            <div className="h-[31px] w-[16px] rounded-bl-[5px] rounded-tl-[58px] bg-[#1c1c1c] sm:h-[41px] sm:w-[21px]" />
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full bg-white/55 p-1 text-[13px] leading-[20px] text-[#5f5d54] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] md:flex" aria-label="Main navigation">
@@ -184,8 +184,8 @@ export default function LandingPage() {
             HERO
         ══════════════════════════════════════════ */}
         <section className="overflow-hidden pt-4 md:pt-8" aria-label="Hero">
-          <div className="flex flex-col items-center gap-6 px-4 pb-8 pt-9 text-center sm:px-6 md:gap-[34px] md:pb-10 md:pt-[76px]">
-            <div className="flex flex-col items-center">
+          <div className="flex flex-col items-start gap-6 px-4 pb-8 pt-9 text-left sm:px-6 md:items-center md:gap-[34px] md:pb-10 md:pt-[76px] md:text-center">
+            <div className="flex flex-col items-start md:items-center">
               <p className="animate-landing-up mb-4 max-w-full rounded-full border border-white/75 bg-white/56 px-3 py-2 text-[9px] font-medium uppercase tracking-[0.16em] text-[#6d6a5f] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_10px_24px_rgba(24,24,18,0.05)] sm:px-4 sm:text-[10px] sm:tracking-[0.2em]" style={{ animationDelay: "0ms" }}>
                 AI career operating system
               </p>
