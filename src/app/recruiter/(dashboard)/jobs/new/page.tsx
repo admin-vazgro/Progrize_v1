@@ -140,7 +140,7 @@ export default function NewJobPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to jobs
           </Link>
-          <h1 className="text-[28px] font-semibold text-[#0a2412] tracking-[-0.6px]">Post a Job</h1>
+          <h1 className="text-[64px] font-normal tracking-[-0.045em] text-[#0a2412] leading-[67px]">Post a Job</h1>
           <p className="text-[13px] text-[#8a877b] mt-1">Fill in the details to attract the right candidates.</p>
         </div>
 

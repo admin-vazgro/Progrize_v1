@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { permissionsForRole } from "@/lib/company-permissions";
 
 const PERSONAL_DOMAINS = new Set([
   "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
       company_id,
       user_id: user.id,
       role: "recruiter",
+      permissions: permissionsForRole("recruiter"),
       verified_by: verifiedBy,
     });
 
@@ -102,7 +104,8 @@ export async function POST(req: NextRequest) {
     const { error: memberError } = await sb.from("company_members").insert({
       company_id: company.id,
       user_id: user.id,
-      role: "admin",
+      role: "owner",
+      permissions: permissionsForRole("owner"),
       verified_by: verifiedBy,
     });
 

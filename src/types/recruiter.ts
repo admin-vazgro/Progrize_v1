@@ -1,13 +1,17 @@
 export interface Company {
   id: string;
   name: string;
+  account_type?: "company" | null;
+  type?: "employer" | "agency" | null;
   domain: string | null;
   logo_url: string | null;
+  banner_url?: string | null;
   website: string | null;
   size: string | null;
   industry: string | null;
   location: string | null;
   description: string | null;
+  follower_count?: number | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -85,6 +89,50 @@ export interface CandidateEducation {
   field_of_study: string | null;
   start_date: string | null;
   end_date: string | null;
+}
+
+export type CompanyRole = "owner" | "admin" | "hr" | "social" | "recruiter";
+export type CompanyPermission =
+  | "company.manage_profile"
+  | "company.manage_members"
+  | "company.manage_teams"
+  | "company.create_posts"
+  | "company.manage_posts"
+  | "company.create_jobs"
+  | "company.manage_recruitments"
+  | "company.view_pipeline";
+
+export interface TeamMember {
+  id: string;
+  user_id: string;
+  company_id: string;
+  role: CompanyRole;
+  roles: CompanyRole[];
+  permissions: CompanyPermission[];
+  joined_at: string;
+  profile: {
+    full_name: string | null;
+    headline: string | null;
+    avatar_url: string | null;
+    email: string | null;
+  };
+}
+
+export interface CompanyPost {
+  id: string;
+  company_id: string;
+  author_id: string;
+  title: string | null;
+  content: string;
+  image_urls: string[];
+  post_type: "update" | "hiring" | "culture" | "announcement";
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  author?: {
+    full_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export interface CandidateSuggestion {

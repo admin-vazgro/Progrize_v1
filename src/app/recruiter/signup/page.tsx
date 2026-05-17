@@ -7,13 +7,13 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RecruiterSignupPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [companyName, setCompanyName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -21,11 +21,12 @@ export default function RecruiterSignupPage() {
     setError(null);
     const supabase = createClient();
 
+    // Step 1: Create auth account only — company is created after login in /recruiter/setup
     const { data, error: signupError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: name, user_type: "recruiter", company_name: companyName },
+        data: { full_name: companyName, user_type: "recruiter", company_name: companyName },
       },
     });
 
@@ -35,39 +36,21 @@ export default function RecruiterSignupPage() {
       return;
     }
 
-    if (data.user) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sb = supabase as any;
+    // Save company name so the setup page can pre-fill it
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pending_org_name", companyName);
+    }
 
-      await sb.from("profiles").upsert({
-        id: data.user.id,
-        full_name: name,
-        email,
-        headline: "Recruiter",
-        user_type: "recruiter",
-        updated_at: new Date().toISOString(),
-      });
-
-      const { data: company } = await sb
-        .from("companies")
-        .insert({ name: companyName, created_by: data.user.id })
-        .select("id")
-        .single();
-
-      if (company?.id) {
-        await sb.from("company_members").insert({
-          company_id: company.id,
-          user_id: data.user.id,
-          role: "admin",
-        });
-      }
+    if (data.session) {
+      // Email confirmation disabled — go straight to setup
+      router.push("/recruiter/setup");
+    } else {
+      // Email confirmation required — tell user to check email
+      setNeedsConfirmation(true);
     }
 
     setSuccess(true);
     setLoading(false);
-    if (data.session) {
-      setTimeout(() => router.push("/recruiter/dashboard"), 1000);
-    }
   }
 
   return (
@@ -84,8 +67,7 @@ export default function RecruiterSignupPage() {
         </p>
       </div>
 
-      {/* Floating white card */}
-      <div className="absolute right-[36px] top-[36px] w-[417px] bg-white rounded-[30px] overflow-hidden pb-10" style={{ minHeight: 820 }}>
+      <div className="absolute right-[36px] top-[36px] w-[417px] bg-white rounded-[30px] overflow-hidden pb-10" style={{ minHeight: 680 }}>
         <Link
           href="/"
           className="absolute top-[23px] right-[23px] w-[44px] h-[44px] bg-[#e8e8e8] rounded-[12px] flex items-center justify-center hover:bg-[#dddbd2] transition-colors"
@@ -103,7 +85,7 @@ export default function RecruiterSignupPage() {
             <div className="bg-[#26251f] absolute rounded-tl-[58px] rounded-bl-[5px]" style={{ width: 20, height: 39, left: 28, top: 0 }} />
           </div>
           <p className="text-black font-normal" style={{ fontSize: 32, letterSpacing: "-1px", lineHeight: 1 }}>
-            Recruiter account
+            Organisation account
           </p>
           <p className="text-[13px] leading-[19px] text-[#3d3c36]">
             Already have an account?{" "}
@@ -113,8 +95,8 @@ export default function RecruiterSignupPage() {
           </p>
         </div>
 
-        {success ? (
-          <div className="absolute top-[337px] left-[39px] w-[337px] flex flex-col gap-[16px]">
+        {needsConfirmation ? (
+          <div className="absolute top-[330px] left-[39px] w-[337px] flex flex-col gap-[16px]">
             <div className="w-10 h-10 rounded-full bg-[#e8f2eb] flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path d="M3 9l4 4 8-8" stroke="#0a2412" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -126,44 +108,35 @@ export default function RecruiterSignupPage() {
             <p className="text-[13px] leading-[19px] text-[#3d3c36]">
               We sent a confirmation link to{" "}
               <span className="font-bold text-[#26251f]">{email}</span>.
-              Click it to activate your account.
+              Click it to confirm your account, then{" "}
+              <Link href="/recruiter/login" className="font-bold text-[#0a2412] hover:underline">
+                sign in here
+              </Link>
+              {" "}to complete your organisation setup.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSignup} className="absolute top-[337px] left-[39px] w-[337px] flex flex-col gap-[32px]">
+          <form onSubmit={handleSignup} className="absolute top-[310px] left-[39px] w-[337px] flex flex-col gap-[32px]">
             <div className="flex flex-col gap-[16px]">
               <div className="flex flex-col gap-[12px]">
-                <label className="text-[14px] leading-[20px] text-black font-normal">Full Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                  autoComplete="name"
-                  className="w-full h-[48px] bg-[#fafaf8] rounded-[8px] px-[12px] text-[12px] text-[#26251f] placeholder:text-[#8a877b] focus:outline-none focus:ring-1 focus:ring-[#26251f]/20 transition-all border-0"
-                />
-              </div>
-
-              <div className="flex flex-col gap-[12px]">
-                <label className="text-[14px] leading-[20px] text-black font-normal">Company Name</label>
+                <label className="text-[14px] leading-[20px] text-black font-normal">Organisation Name</label>
                 <input
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Your company name"
+                  placeholder="Your organisation name"
                   required
                   className="w-full h-[48px] bg-[#fafaf8] rounded-[8px] px-[12px] text-[12px] text-[#26251f] placeholder:text-[#8a877b] focus:outline-none focus:ring-1 focus:ring-[#26251f]/20 transition-all border-0"
                 />
               </div>
 
               <div className="flex flex-col gap-[12px]">
-                <label className="text-[14px] leading-[20px] text-black font-normal">Work Email</label>
+                <label className="text-[14px] leading-[20px] text-black font-normal">Admin Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
+                  placeholder="you@organisation.com"
                   required
                   autoComplete="email"
                   className="w-full h-[48px] bg-[#fafaf8] rounded-[8px] px-[12px] text-[12px] text-[#26251f] placeholder:text-[#8a877b] focus:outline-none focus:ring-1 focus:ring-[#26251f]/20 transition-all border-0"
@@ -194,7 +167,7 @@ export default function RecruiterSignupPage() {
               disabled={loading}
               className="w-full h-[52px] bg-[#161611] rounded-[49px] text-[#fafaf8] text-[13px] font-bold tracking-[-0.065px] hover:bg-[#26251f] transition-colors disabled:opacity-50"
             >
-              {loading ? "Creating account…" : "Create Recruiter Account"}
+              {loading ? "Creating account…" : "Create Organisation Account"}
             </button>
 
             <p className="text-[13px] leading-[19px] text-[#5f5d54]">

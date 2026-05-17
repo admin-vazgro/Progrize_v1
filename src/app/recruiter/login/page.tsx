@@ -17,9 +17,15 @@ export default function RecruiterLoginPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
     if (loginError) {
       setError(loginError.message);
+      setLoading(false);
+      return;
+    }
+    if (data.user?.user_metadata?.user_type !== "recruiter") {
+      await supabase.auth.signOut();
+      setError("This is a job seeker account. Please use the job seeker login instead.");
       setLoading(false);
       return;
     }
@@ -99,7 +105,12 @@ export default function RecruiterLoginPage() {
             </div>
 
             {error && (
-              <p className="text-[12px] text-red-600 bg-red-50 px-3 py-2 rounded-[8px]">{error}</p>
+              <p className="text-[12px] text-red-600 bg-red-50 px-3 py-2 rounded-[8px]">
+                {error}
+                {error.includes("job seeker") && (
+                  <a href="/login" className="ml-1 underline font-semibold">Go to job seeker login</a>
+                )}
+              </p>
             )}
           </div>
 

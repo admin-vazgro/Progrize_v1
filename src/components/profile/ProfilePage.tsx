@@ -411,7 +411,7 @@ export default function ProfilePage({
         </div>
 
         {/* ── Right sidebar ── */}
-        <div className="w-[320px] shrink-0 space-y-3 hidden lg:block">
+        <div className="w-[320px] shrink-0 space-y-4 hidden lg:block sticky top-8 self-start">
 
           {/* Skills */}
           <div className="bg-white rounded-[20px]">

@@ -169,6 +169,7 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-3 shrink-0">
+            <Link href="/recruiter/login" className="hidden text-[13px] leading-[20px] text-[#5f5d54] transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#161611] focus-visible:outline-none focus-visible:text-[#161611] lg:block">For organisations</Link>
             <Link href="/login" className="hidden text-[13px] leading-[20px] text-[#5f5d54] transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#161611] focus-visible:outline-none focus-visible:text-[#161611] sm:block">Sign in</Link>
             <Link href="/signup" className="group flex h-[42px] items-center gap-2 rounded-full bg-[#161611] py-1 pl-4 pr-1 text-[12px] leading-[20px] text-[#fafaf8] shadow-[0_12px_28px_rgba(22,22,17,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#26251f] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161611] focus-visible:ring-offset-2 sm:h-[44px] sm:pl-5 sm:text-[13px]">
               Start free
@@ -859,6 +860,8 @@ export default function LandingPage() {
               {[["Sign in", "/login"], ["Create account", "/signup"]].map(([l, h]) => (
                 <li key={l}><Link href={h} className="text-[12px] text-[#8a877b] hover:text-[#26251f] transition-colors">{l}</Link></li>
               ))}
+              <li><Link href="/recruiter/login" className="text-[12px] text-[#8a877b] hover:text-[#26251f] transition-colors">For organisations</Link></li>
+              <li><Link href="/recruiter/signup" className="text-[12px] text-[#8a877b] hover:text-[#26251f] transition-colors">Organisation signup</Link></li>
             </ul>
           </div>
         </div>

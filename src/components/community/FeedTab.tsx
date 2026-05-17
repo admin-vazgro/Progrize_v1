@@ -16,9 +16,12 @@ export interface Post {
   my_vote: 1 | -1 | 0;
   created_at: string;
   user_id: string;
+  company_id?: string | null;
+  company_post_type?: string | null;
   author_following?: boolean;
   liked_by_me: boolean;
   profiles: { full_name: string | null; headline: string | null; avatar_url: string | null } | null;
+  company?: { name: string | null; logo_url: string | null; industry: string | null } | null;
   room?: { name: string; slug: string } | null;
   reshared_post?: {
     id: string;
@@ -34,12 +37,13 @@ interface Props {
   roomId?: string;
   joinedRoomIds?: string[];
   hideCompose?: boolean;
+  refreshKey?: number;
   sortBy?: "recommended" | "all" | "latest" | "top" | "network" | "boards";
 }
 
 const POST_LIMIT = 1000;
 
-export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideCompose, sortBy }: Props) {
+export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideCompose, refreshKey, sortBy }: Props) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
@@ -70,7 +74,7 @@ export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideC
     }
   }, [joinedRoomIds, roomId, sortBy]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  useEffect(() => { fetchPosts(); }, [fetchPosts, refreshKey]);
 
   async function handlePost() {
     if (!draft.trim() || draft.length > POST_LIMIT) return;

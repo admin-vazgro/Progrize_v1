@@ -8,6 +8,9 @@ type VisiblePost = Record<string, unknown> & {
   created_at: string;
   user_id: string;
   room_id: string | null;
+  company_id?: string | null;
+  company_post_id?: string | null;
+  company_post_type?: string | null;
   like_count?: number | null;
   comment_count?: number | null;
   reshare_count?: number | null;
@@ -104,7 +107,7 @@ export async function GET(req: NextRequest) {
 
   let query = sb
     .from("posts")
-    .select("id, content, media_urls, like_count, comment_count, reshare_count, created_at, user_id, room_id, reshared_post_id, visibility");
+    .select("id, content, media_urls, like_count, comment_count, reshare_count, created_at, user_id, room_id, reshared_post_id, visibility, company_id, company_post_id, company_post_type");
 
   if (sort === "top") {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -176,6 +179,18 @@ export async function GET(req: NextRequest) {
     const { data: rooms } = await sb.from("rooms").select("id, name, slug").in("id", postRoomIds);
     for (const r of (rooms ?? []) as Array<{ id: string; name: string; slug: string }>) {
       roomMap.set(r.id, { name: r.name, slug: r.slug });
+    }
+  }
+
+  const companyIds = [...new Set(visiblePosts.map((p) => p.company_id as string | null).filter(Boolean))] as string[];
+  const companyMap = new Map<string, { name: string | null; logo_url: string | null; industry: string | null }>();
+  if (companyIds.length > 0) {
+    const { data: companies } = await admin
+      .from("companies")
+      .select("id, name, logo_url, industry")
+      .in("id", companyIds);
+    for (const company of (companies ?? []) as Array<{ id: string; name: string | null; logo_url: string | null; industry: string | null }>) {
+      companyMap.set(company.id, { name: company.name, logo_url: company.logo_url, industry: company.industry });
     }
   }
 
@@ -281,6 +296,7 @@ export async function GET(req: NextRequest) {
   const enriched = rankedPosts.map((post) => ({
     ...post,
     profiles: profileMap.get(post.user_id as string) ?? null,
+    company: post.company_id ? (companyMap.get(post.company_id as string) ?? null) : null,
     author_following: followingSet.has(post.user_id),
     liked_by_me: likedSet.has(post.id as string),
     my_vote: voteMap.get(post.id as string) ?? 0,

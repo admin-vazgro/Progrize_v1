@@ -109,25 +109,19 @@ export default function Sidebar({
         <p className="text-[10px] font-semibold text-[#8a877b] tracking-[0.8px] uppercase leading-[14px] mb-[8px]">
           you
         </p>
-        {[
-          { href: "/profile", label: "my profile", Icon: Zap },
-          { href: "/dashboard", label: "dashboard", Icon: LayoutDashboard },
-        ].map(({ href, label, Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`flex items-center gap-[10px] px-[10px] py-[13px] rounded-[6px] transition-colors ${
-              active(href) ? "bg-[#e8f2eb]" : "hover:bg-[#f0ede8]"
-            }`}
-          >
-            <div className={`w-[28px] h-[28px] rounded-[6px] flex items-center justify-center shrink-0 ${active(href) ? "bg-[#c6f46b]/30" : "bg-[#eceae3]"}`}>
-              <Icon className={`w-[15px] h-[15px] ${active(href) ? "text-[#0a2412]" : "text-[#5f5d54]"}`} />
-            </div>
-            <span className={`flex-1 text-[13px] leading-[18px] ${active(href) ? "font-medium text-[#0a2412]" : "font-normal text-[#3d3c36]"}`}>
-              {label}
-            </span>
-          </Link>
-        ))}
+        <Link
+          href="/profile"
+          className={`flex items-center gap-[10px] px-[10px] py-[13px] rounded-[6px] transition-colors ${
+            active("/profile") ? "bg-[#e8f2eb]" : "hover:bg-[#f0ede8]"
+          }`}
+        >
+          <div className={`w-[28px] h-[28px] rounded-[6px] flex items-center justify-center shrink-0 ${active("/profile") ? "bg-[#c6f46b]/30" : "bg-[#eceae3]"}`}>
+            <Zap className={`w-[15px] h-[15px] ${active("/profile") ? "text-[#0a2412]" : "text-[#5f5d54]"}`} />
+          </div>
+          <span className={`flex-1 text-[13px] leading-[18px] ${active("/profile") ? "font-medium text-[#0a2412]" : "font-normal text-[#3d3c36]"}`}>
+            my profile
+          </span>
+        </Link>
       </div>
 
       {/* RECRUITING section — only if user has company memberships */}
@@ -147,6 +141,7 @@ export default function Sidebar({
                   setActiveCompany(c);
                   localStorage.setItem("recruiter_company_id", c.company_id);
                   localStorage.setItem("recruiter_company_name", c.company_name);
+                  document.cookie = `recruiter_company_id=${c.company_id}; path=/; max-age=31536000; SameSite=Lax`;
                 }}
                 className={`flex items-center gap-[8px] px-[10px] py-[8px] rounded-[6px] transition-colors ${
                   isActive ? "bg-[#e8f2eb]" : "hover:bg-[#f0ede8]"

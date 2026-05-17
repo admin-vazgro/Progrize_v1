@@ -56,7 +56,7 @@ export default function CandidatesPage() {
       <div className="max-w-[900px] mx-auto px-8 py-8">
         <div className="mb-8">
           <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-1">AI Matched</p>
-          <h1 className="text-[28px] font-semibold text-[#0a2412] tracking-[-0.6px]">Candidate Suggestions</h1>
+          <h1 className="text-[64px] font-normal tracking-[-0.045em] text-[#0a2412] leading-[67px]">Candidate Suggestions</h1>
           <p className="text-[13px] text-[#8a877b] mt-1">Profiles matched to your active job postings by skill overlap.</p>
         </div>
 

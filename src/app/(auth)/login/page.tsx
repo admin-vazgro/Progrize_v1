@@ -17,8 +17,14 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
+    if (data.user?.user_metadata?.user_type === "recruiter") {
+      await supabase.auth.signOut();
+      setError("This is an organisation account. Please use the organisation login instead.");
+      setLoading(false);
+      return;
+    }
     router.push("/dashboard");
     router.refresh();
   }
@@ -108,7 +114,12 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="text-[12px] text-red-600 bg-red-50 px-3 py-2 rounded-[8px]">{error}</p>
+              <p className="text-[12px] text-red-600 bg-red-50 px-3 py-2 rounded-[8px]">
+                {error}
+                {error.includes("organisation") && (
+                  <a href="/recruiter/login" className="ml-1 underline font-semibold">Go to organisation login</a>
+                )}
+              </p>
             )}
           </div>
 

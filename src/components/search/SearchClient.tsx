@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Bookmark, BookmarkCheck, X, MapPin, ChevronDown,
+  Bookmark, BookmarkCheck, X, MapPin, ChevronDown, Check,
 } from "lucide-react";
 import type { ReedJob } from "@/app/api/jobs/search/route";
+import type { InternalJob } from "@/app/api/jobs/internal/route";
 import { companyColor } from "@/lib/job-colors";
 import JobDrawer from "@/components/jobs/JobDrawer";
+import InternalJobDrawer from "@/components/jobs/InternalJobDrawer";
 
 type CategoryTab = "jobs" | "people" | "community";
 type TypeChip = "all" | "remote" | "fulltime" | "parttime";
@@ -54,24 +56,37 @@ export default function SearchClient({ query }: Props) {
   const locationRef = useRef<HTMLDivElement>(null);
 
   const [jobs, setJobs] = useState<ReedJob[]>([]);
+  const [internalJobs, setInternalJobs] = useState<InternalJob[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedJob, setSelectedJob] = useState<ReedJob | null>(null);
+  const [selectedInternalJob, setSelectedInternalJob] = useState<InternalJob | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!query.trim()) return;
     setLoading(true);
     setJobs([]);
-    fetch(`/api/jobs/search?keywords=${encodeURIComponent(query)}`)
-      .then((r) => r.json())
-      .then((d) => setJobs(d.jobs ?? []))
+    setInternalJobs([]);
+    const params = new URLSearchParams({ keywords: query });
+    Promise.all([
+      fetch(`/api/jobs/search?${params}`).then((r) => r.json()),
+      fetch(`/api/jobs/internal?${params}`).then((r) => r.json()),
+      fetch("/api/jobs/apply").then((r) => r.ok ? r.json() : { applied: [] }),
+    ])
+      .then(([external, internal, applied]) => {
+        setJobs(external.jobs ?? []);
+        setInternalJobs(internal.jobs ?? []);
+        setAppliedIds(new Set(applied.applied ?? []));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [query]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") { setSelectedJob(null); setLocationOpen(false); }
+      if (e.key === "Escape") { setSelectedJob(null); setSelectedInternalJob(null); setLocationOpen(false); }
     }
     function onMouseDown(e: MouseEvent) {
       if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
@@ -98,7 +113,24 @@ export default function SearchClient({ query }: Props) {
     } catch { /* ignore */ }
   }
 
-  const uniqueLocations = [...new Set(jobs.map((j) => j.locationName).filter(Boolean))].sort() as string[];
+  async function handleApply(job: InternalJob, cvId?: string, cvName?: string) {
+    if (appliedIds.has(job.id) || applyingId) return;
+    setApplyingId(job.id);
+    const res = await fetch("/api/jobs/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_posting_id: job.id, cv_id: cvId ?? null, cv_name: cvName ?? null }),
+    });
+    if (res.ok) setAppliedIds((prev) => new Set([...prev, job.id]));
+    setApplyingId(null);
+  }
+
+  const uniqueLocations = [
+    ...new Set([
+      ...jobs.map((j) => j.locationName).filter(Boolean),
+      ...internalJobs.map((j) => j.location).filter(Boolean),
+    ]),
+  ].sort() as string[];
   const filteredLocations = uniqueLocations.filter((l) =>
     l.toLowerCase().includes(locationSearch.toLowerCase())
   );
@@ -109,6 +141,18 @@ export default function SearchClient({ query }: Props) {
     if (typeChip === "parttime" && !job.partTime) return false;
     if (filterSalaryMin > 0 && job.maximumSalary !== null && job.maximumSalary < filterSalaryMin) return false;
     if (selectedLocation && job.locationName !== selectedLocation) return false;
+    return true;
+  });
+
+  const filteredInternalJobs = internalJobs.filter((job) => {
+    const mode = job.work_mode?.toLowerCase() ?? "";
+    const type = job.employment_type?.toLowerCase() ?? "";
+    const loc = job.location?.toLowerCase() ?? "";
+    if (typeChip === "remote" && !mode.includes("remote") && !loc.includes("remote")) return false;
+    if (typeChip === "fulltime" && type.includes("part")) return false;
+    if (typeChip === "parttime" && !type.includes("part")) return false;
+    if (filterSalaryMin > 0 && (job.salary_max ?? 0) < filterSalaryMin) return false;
+    if (selectedLocation && !loc.includes(selectedLocation.toLowerCase())) return false;
     return true;
   });
 
@@ -138,8 +182,8 @@ export default function SearchClient({ query }: Props) {
                 }`}
               >
                 {tab}
-                {tab === "jobs" && jobs.length > 0 && (
-                  <span className="ml-2 font-mono text-[10px] text-[#8a877b]">{jobs.length}</span>
+                {tab === "jobs" && jobs.length + internalJobs.length > 0 && (
+                  <span className="ml-2 font-mono text-[10px] text-[#8a877b]">{jobs.length + internalJobs.length}</span>
                 )}
               </button>
             );
@@ -250,9 +294,9 @@ export default function SearchClient({ query }: Props) {
             )}
 
             <div className="flex-1" />
-            {jobs.length > 0 && (
+            {jobs.length + internalJobs.length > 0 && (
               <p className="text-[13px] text-[#5f5d54] shrink-0">
-                <span className="font-bold">{filteredJobs.length} </span>job match
+                <span className="font-bold">{filteredJobs.length + filteredInternalJobs.length} </span>job match
               </p>
             )}
           </div>
@@ -284,13 +328,90 @@ export default function SearchClient({ query }: Props) {
               </div>
             )}
 
-            {!loading && filteredJobs.length === 0 && (
+            {!loading && filteredInternalJobs.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-end gap-px">
+                    <div className="w-[3px] h-[4px] bg-[#0a2412] rounded-tl-[4px] rounded-bl-[2px]" />
+                    <div className="w-[3px] h-[7px] bg-[#0a2412] rounded-tl-[4px] rounded-bl-[2px]" />
+                    <div className="w-[5px] h-[10px] bg-[#0a2412] rounded-tl-[4px] rounded-bl-[2px]" />
+                  </div>
+                  <p className="text-[12px] font-semibold text-[#0a2412] tracking-[0.04em] uppercase">
+                    Posted on Progrize
+                  </p>
+                  <span className="text-[11px] text-[#8a877b] font-mono">{filteredInternalJobs.length}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-[16px]">
+                  {filteredInternalJobs.map((job) => {
+                    const applied = appliedIds.has(job.id);
+                    const applying = applyingId === job.id;
+                    const salary = salaryLabel(job.salary_min, job.salary_max, job.salary_currency);
+                    return (
+                      <div
+                        key={job.id}
+                        onClick={() => setSelectedInternalJob(job)}
+                        className="bg-white rounded-[14px] flex flex-col ring-1 ring-[#e8f2eb] hover:ring-[#b8dfc4] hover:-translate-y-[2px] hover:shadow-sm transition-all cursor-pointer"
+                      >
+                        <div className="p-[20px] flex flex-col gap-[16px] flex-1">
+                          <div className="flex items-center gap-[12px] overflow-hidden">
+                            <div
+                              className="w-[41px] h-[41px] rounded-[10px] flex items-center justify-center text-white text-[13px] font-bold shrink-0"
+                              style={{ backgroundColor: companyColor(job.company_name) }}
+                            >
+                              {job.company_name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[17px] font-semibold text-[#0a2412] leading-[20px] truncate">{job.title}</p>
+                              <p className="text-[12px] text-[#5f5d54] leading-[16px] truncate mt-[4px]">
+                                {[job.company_name, job.location].filter(Boolean).join(" · ")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-[6px]">
+                            {job.work_mode && (
+                              <span className="border border-[#d0ebd8] bg-[#f0f9f3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#1a5c30] capitalize">{job.work_mode}</span>
+                            )}
+                            {job.employment_type && (
+                              <span className="border border-[#eceae3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#5f5d54]">{job.employment_type}</span>
+                            )}
+                            {salary && (
+                              <span className="border border-[#eceae3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#5f5d54]">{salary}</span>
+                            )}
+                            {job.required_skills.slice(0, 2).map((skill) => (
+                              <span key={skill} className="border border-[#eceae3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#5f5d54]">{skill}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="h-px bg-[#eceae3]" />
+                        <div className="p-[20px] flex items-center gap-[8px]">
+                          <span className="font-mono text-[11px] text-[#8a877b] shrink-0">· {timeAgo(job.posted_at)}</span>
+                          <div className="flex-1" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleApply(job); }}
+                            disabled={applied || applying}
+                            className={`h-[33px] px-4 rounded-[10px] text-[12px] font-medium transition shrink-0 flex items-center gap-1.5 ${
+                              applied
+                                ? "bg-[#e8f2eb] text-[#0a2412] cursor-default"
+                                : "bg-[#0a2412] text-[#dee2df] hover:bg-[#142e1c]"
+                            }`}
+                          >
+                            {applied ? <><Check className="w-3 h-3" /> Applied</> : applying ? "Applying..." : "Apply"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {!loading && filteredJobs.length === 0 && filteredInternalJobs.length === 0 && (
               <div className="py-20 text-center">
                 <p className="text-[14px] font-semibold text-[#1a1a16] mb-1">
-                  {jobs.length === 0 ? "No jobs found" : "No matches for this filter"}
+                  {jobs.length + internalJobs.length === 0 ? "No jobs found" : "No matches for this filter"}
                 </p>
                 <p className="text-[13px] text-[#8a877b]">
-                  {jobs.length === 0 ? "Try different keywords." : "Try adjusting your filters."}
+                  {jobs.length + internalJobs.length === 0 ? "Try different keywords." : "Try adjusting your filters."}
                 </p>
               </div>
             )}
@@ -407,6 +528,15 @@ export default function SearchClient({ query }: Props) {
           isSaved={savedIds.has(selectedJob.jobId)}
           onSave={() => handleSave(selectedJob)}
           onClose={() => setSelectedJob(null)}
+        />
+      )}
+      {selectedInternalJob && (
+        <InternalJobDrawer
+          job={selectedInternalJob}
+          isApplied={appliedIds.has(selectedInternalJob.id)}
+          applying={applyingId === selectedInternalJob.id}
+          onApply={(cvId, cvName) => handleApply(selectedInternalJob, cvId, cvName)}
+          onClose={() => setSelectedInternalJob(null)}
         />
       )}
     </div>

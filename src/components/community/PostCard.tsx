@@ -268,10 +268,11 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
   const menuRef = useRef<HTMLDivElement>(null);
   const editFileRef = useRef<HTMLInputElement>(null);
 
+  const isCompanyPost = !!post.company_id;
   const isOwner = post.user_id === currentUserId;
-  const name = post.profiles?.full_name ?? "Unknown";
-  const headline = post.profiles?.headline ?? "";
-  const avatarUrl = post.profiles?.avatar_url ?? null;
+  const name = isCompanyPost ? (post.company?.name ?? "Company") : (post.profiles?.full_name ?? "Unknown");
+  const headline = isCompanyPost ? (post.company?.industry ?? "Company") : (post.profiles?.headline ?? "");
+  const avatarUrl = isCompanyPost ? (post.company?.logo_url ?? null) : (post.profiles?.avatar_url ?? null);
   const images = post.media_urls ?? [];
 
   useEffect(() => {
@@ -408,7 +409,7 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
         <div className="flex-1 min-w-0">
           <div className="flex min-w-0 items-start justify-between gap-2">
             <p className="min-w-0 truncate text-[14px] font-bold leading-[18px] text-[#4b4b4b]">{name}</p>
-            {!isOwner && <FollowButton userId={post.user_id} initialFollowing={post.author_following} />}
+            {!isOwner && !isCompanyPost && <FollowButton userId={post.user_id} initialFollowing={post.author_following} />}
           </div>
           {headline && <p className="truncate text-[11px] font-light leading-[15px] text-[#4b4b4b]">{headline}</p>}
           <p className="text-[11px] font-light leading-[15px] text-[#4b4b4b]">{formatDistanceToNow(post.created_at)}</p>

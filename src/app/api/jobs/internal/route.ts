@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export interface InternalJob {
@@ -19,21 +19,65 @@ export interface InternalJob {
   source: "progrize";
 }
 
-export async function GET() {
+function normalize(value: string | null | undefined) {
+  return (value ?? "").toLowerCase().trim();
+}
+
+function postingMatchesSearch(
+  posting: {
+    title: string;
+    location: string | null;
+    description: string;
+    required_skills: string[];
+    work_mode: string | null;
+    employment_type: string | null;
+  },
+  companyName: string,
+  keywords: string,
+  location: string,
+) {
+  const terms = normalize(keywords)
+    .split(/\s+/)
+    .map((term) => term.trim())
+    .filter((term) => term.length > 1);
+
+  const haystack = normalize([
+    posting.title,
+    companyName,
+    posting.location,
+    posting.description,
+    posting.work_mode,
+    posting.employment_type,
+    ...(posting.required_skills ?? []),
+  ].filter(Boolean).join(" "));
+
+  const keywordMatch = terms.length === 0 || terms.every((term) => haystack.includes(term));
+  const locationMatch = !location.trim() || normalize(posting.location).includes(normalize(location));
+  return keywordMatch && locationMatch;
+}
+
+export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = req.nextUrl;
+  const keywords = searchParams.get("keywords") ?? "";
+  const location = searchParams.get("location") ?? "";
+  const hasSearch = !!keywords.trim() || !!location.trim();
 
   // Use service client so company names are readable regardless of membership
   const admin = await createServiceClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = admin as any;
 
-  // Fetch user profile for relevance matching
-  const [{ data: profile }, { data: skillsRaw }] = await Promise.all([
-    sb.from("profiles").select("target_roles, headline").eq("id", user.id).single(),
-    sb.from("profile_skills").select("skills(name)").eq("user_id", user.id),
-  ]);
+  // Fetch user profile for relevance matching when no explicit search is provided.
+  const [{ data: profile }, { data: skillsRaw }] = hasSearch
+    ? [{ data: null }, { data: [] }]
+    : await Promise.all([
+      sb.from("profiles").select("target_roles, headline").eq("id", user.id).single(),
+      sb.from("profile_skills").select("skills(name)").eq("user_id", user.id),
+    ]);
 
   const targetRoles: string[] = (profile?.target_roles ?? []).map((r: string) => r.toLowerCase());
   const userSkills: string[] = ((skillsRaw ?? []) as Array<{ skills: { name: string } | null }>)
@@ -82,21 +126,8 @@ export async function GET() {
     return score;
   }
 
-  // Sort by relevance score descending; only keep jobs with at least some relevance
-  // when the user has a profile. Fall back to recent jobs if no profile data.
-  const scored = (postings as RawPosting[])
-    .map((p) => ({ p, score: scorePosting(p) }))
-    .sort((a, b) => b.score - a.score || new Date(b.p.posted_at).getTime() - new Date(a.p.posted_at).getTime());
-
-  // Only show jobs that score > 0 when user has a profile; show nothing rather than irrelevant jobs.
-  // Only fall back to recent jobs when the user has no profile data at all.
-  const hasProfile = targetRoles.length > 0 || userSkills.length > 0;
-  const finalPostings = hasProfile
-    ? scored.filter((x) => x.score > 0).map((x) => x.p).slice(0, 20)
-    : scored.slice(0, 20).map((x) => x.p);
-
   // Fetch company names
-  const companyIds = [...new Set(finalPostings.map((p) => p.company_id))];
+  const companyIds = [...new Set((postings as RawPosting[]).map((p) => p.company_id))];
   const { data: companies } = await sb
     .from("companies")
     .select("id, name")
@@ -105,6 +136,25 @@ export async function GET() {
   const companyMap = Object.fromEntries(
     ((companies ?? []) as Array<{ id: string; name: string }>).map((c) => [c.id, c.name])
   );
+
+  const searchedPostings = hasSearch
+    ? (postings as RawPosting[]).filter((p) => postingMatchesSearch(p, companyMap[p.company_id] ?? "", keywords, location))
+    : null;
+
+  // Sort by relevance score descending; only keep jobs with at least some relevance
+  // when the user has a profile. Fall back to recent jobs if no profile data.
+  const scored = ((searchedPostings ?? postings) as RawPosting[])
+    .map((p) => ({ p, score: scorePosting(p) }))
+    .sort((a, b) => b.score - a.score || new Date(b.p.posted_at).getTime() - new Date(a.p.posted_at).getTime());
+
+  // Only show jobs that score > 0 when user has a profile; show nothing rather than irrelevant jobs.
+  // Only fall back to recent jobs when the user has no profile data at all.
+  const hasProfile = targetRoles.length > 0 || userSkills.length > 0;
+  const finalPostings = hasSearch
+    ? scored.map((x) => x.p).slice(0, 30)
+    : hasProfile
+    ? scored.filter((x) => x.score > 0).map((x) => x.p).slice(0, 20)
+    : scored.slice(0, 20).map((x) => x.p);
 
   const jobs: InternalJob[] = finalPostings.map((p) => ({
     id: p.id,

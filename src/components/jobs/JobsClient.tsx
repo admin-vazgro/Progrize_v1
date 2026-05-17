@@ -144,12 +144,18 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
     setLoading(true);
     setError(null);
     setSelectedJob(null);
+    setSelectedInternalJob(null);
     try {
       const params = new URLSearchParams({ keywords: kw, location: loc });
-      const res = await fetch(`/api/jobs/search?${params}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Search failed");
-      setJobs(data.jobs ?? []);
+      const [externalRes, internalRes] = await Promise.all([
+        fetch(`/api/jobs/search?${params}`),
+        fetch(`/api/jobs/internal?${params}`),
+      ]);
+      const externalData = await externalRes.json();
+      const internalData = await internalRes.json();
+      if (!externalRes.ok) throw new Error(externalData.error ?? "Search failed");
+      setJobs(externalData.jobs ?? []);
+      setInternalJobs(internalRes.ok ? (internalData.jobs ?? []) : []);
       setSearched(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
@@ -556,7 +562,7 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
           </div>
         )}
 
-        {!loading && searched && filteredJobs.length === 0 && (
+        {!loading && searched && filteredJobs.length === 0 && filteredInternalJobs.length === 0 && (
           <div className="bg-white rounded-[14px] p-14 text-center">
             <p className="text-[14px] font-semibold text-[#1a1a16] mb-1">No roles found</p>
             <p className="text-[13px] text-[#8a877b]">Try different keywords or clear your filters.</p>

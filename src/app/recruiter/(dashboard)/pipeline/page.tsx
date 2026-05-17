@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { MapPin, Calendar } from "lucide-react";
+import { getActiveCompanyMembership } from "@/lib/recruiter-active-company";
 
 const STATUS_STYLES: Record<string, string> = {
   applied: "bg-[#f5f3ed] text-[#5f5d54]",
@@ -24,10 +25,13 @@ export default async function PipelinePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any;
 
+  const { data: membership } = await getActiveCompanyMembership(sb, user.id, "company_id");
+  if (!membership) redirect("/recruiter/setup");
+
   const { data: jobs } = await sb
     .from("job_postings")
     .select("id, title")
-    .eq("recruiter_id", user.id)
+    .eq("company_id", membership.company_id)
     .eq("is_active", true);
 
   const jobIds = (jobs ?? []).map((j: { id: string }) => j.id);
@@ -79,7 +83,7 @@ export default async function PipelinePage() {
       <div className="max-w-[1100px] mx-auto px-8 py-8">
         <div className="mb-8">
           <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-1">Overview</p>
-          <h1 className="text-[28px] font-semibold text-[#0a2412] tracking-[-0.6px]">Candidate Pipeline</h1>
+          <h1 className="text-[64px] font-normal tracking-[-0.045em] text-[#0a2412] leading-[67px]">Candidate Pipeline</h1>
           <p className="text-[13px] text-[#8a877b] mt-1">{allApplications.length} total applicant{allApplications.length !== 1 ? "s" : ""} across {jobIds.length} job{jobIds.length !== 1 ? "s" : ""}</p>
         </div>
 

@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Plus, Briefcase, MapPin, Users, ArrowRight } from "lucide-react";
+import { Plus, Briefcase, Users } from "lucide-react";
 import DeleteJobButton from "@/components/recruiter/DeleteJobButton";
+import { companyColor } from "@/lib/job-colors";
+import { getActiveCompanyMembership } from "@/lib/recruiter-active-company";
 
 const WORK_MODE_LABELS: Record<string, string> = {
   remote: "Remote",
@@ -17,6 +19,19 @@ const TYPE_LABELS: Record<string, string> = {
   freelance: "Freelance",
 };
 
+type Job = {
+  id: string;
+  title: string;
+  location: string | null;
+  work_mode: string | null;
+  employment_type: string | null;
+  required_skills: string[];
+  is_active: boolean;
+  posted_at: string;
+  created_at: string;
+  companies: { name: string } | null;
+};
+
 export default async function RecruiterJobsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,14 +40,17 @@ export default async function RecruiterJobsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any;
 
+  const { data: membership } = await getActiveCompanyMembership(sb, user.id, "company_id");
+  if (!membership) redirect("/recruiter/setup");
+
   const { data: jobs } = await sb
     .from("job_postings")
     .select("id, title, location, work_mode, employment_type, seniority, required_skills, is_active, posted_at, created_at, companies(name)")
-    .eq("recruiter_id", user.id)
+    .eq("company_id", membership.company_id)
     .order("created_at", { ascending: false });
 
   const jobIds = (jobs ?? []).map((j: { id: string }) => j.id);
-  let appCounts: Record<string, number> = {};
+  const appCounts: Record<string, number> = {};
   if (jobIds.length > 0) {
     const { data: appRows } = await sb
       .from("applications")
@@ -43,29 +61,55 @@ export default async function RecruiterJobsPage() {
     });
   }
 
-  const activeJobs = (jobs ?? []).filter((j: { is_active: boolean }) => j.is_active);
-  const closedJobs = (jobs ?? []).filter((j: { is_active: boolean }) => !j.is_active);
+  const activeJobs = (jobs ?? []).filter((j: Job) => j.is_active) as Job[];
+  const closedJobs = (jobs ?? []).filter((j: Job) => !j.is_active) as Job[];
 
   return (
-    <div className="h-full overflow-y-auto bg-[#fafaf8]">
-      <div className="max-w-[900px] mx-auto px-8 py-8">
+    <div className="h-full flex flex-col overflow-hidden bg-[#fafaf8]">
 
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-1">Manage</p>
-            <h1 className="text-[28px] font-semibold text-[#0a2412] tracking-[-0.6px]">Job Postings</h1>
-          </div>
-          <Link
-            href="/recruiter/jobs/new"
-            className="flex items-center gap-2 h-[40px] px-5 bg-[#0a2412] text-[#dee2df] text-[13px] font-medium rounded-[10px] hover:bg-[#142e1c] transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Post a Job
-          </Link>
+      {/* Page header */}
+      <div className="px-8 pt-7 pb-5 flex items-end justify-between shrink-0">
+        <div>
+          <h1 className="text-[64px] font-normal tracking-[-0.045em] text-[#0a2412] leading-[67px]">
+            Recruitment
+          </h1>
+          <p className="text-[15px] text-[#5f5d54] mt-[8px]">
+            {activeJobs.length > 0 ? (
+              <><span className="font-bold">{activeJobs.length}</span> active job{activeJobs.length !== 1 ? "s" : ""}</>
+            ) : (
+              "Post jobs and find the best candidates"
+            )}
+          </p>
         </div>
+        <Link
+          href="/recruiter/jobs/new"
+          className="h-[34px] px-[14px] bg-white border border-[#dddbd2] rounded-[10px] text-[13px] font-medium text-[#0a2412] hover:bg-[#f5f4f0] transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Post a job
+        </Link>
+      </div>
+
+      {/* Tab bar */}
+      <div className="px-8 shrink-0">
+        <div className="flex gap-[45px]">
+          <div className="text-[13px] font-bold text-[#0a2412] pb-[7px] border-b-2 border-[#0a2412]">
+            Active ({activeJobs.length})
+          </div>
+          {closedJobs.length > 0 && (
+            <div className="text-[13px] font-medium text-[#5f5d54] pb-[7px] border-b-2 border-transparent">
+              Closed ({closedJobs.length})
+            </div>
+          )}
+        </div>
+        <div className="h-px bg-[#eceae3] w-full" />
+      </div>
+
+      {/* Jobs content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-8 pb-6 pt-6">
 
         {(jobs ?? []).length === 0 ? (
-          <div className="bg-white rounded-[20px] border border-dashed border-[#d4d0c8] p-16 text-center">
+          <div className="bg-white rounded-[20px] p-16 text-center">
             <Briefcase className="w-10 h-10 text-[#c8c5bc] mx-auto mb-4" />
             <p className="text-[16px] font-semibold text-[#3d3c36] mb-2">No jobs posted yet</p>
             <p className="text-[13px] text-[#8a877b] mb-6">Create your first job posting to start finding candidates.</p>
@@ -79,91 +123,95 @@ export default async function RecruiterJobsPage() {
           </div>
         ) : (
           <>
+            {/* Active jobs grid */}
             {activeJobs.length > 0 && (
-              <div className="mb-8">
-                <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Active ({activeJobs.length})</p>
-                <div className="flex flex-col gap-3">
-                  {activeJobs.map((job: {
-                    id: string;
-                    title: string;
-                    location: string | null;
-                    work_mode: string | null;
-                    employment_type: string | null;
-                    required_skills: string[];
-                    posted_at: string;
-                    companies: { name: string };
-                  }) => (
-                    <Link
-                      key={job.id}
-                      href={`/recruiter/jobs/${job.id}`}
-                      className="group bg-white rounded-[20px] p-5 hover:shadow-sm transition-shadow flex items-start gap-4"
-                    >
-                      <div className="w-10 h-10 rounded-[10px] bg-[#f0ede8] flex items-center justify-center shrink-0">
-                        <Briefcase className="w-4 h-4 text-[#5f5d54]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4 mb-1">
-                          <p className="text-[15px] font-semibold text-[#0a2412] tracking-[-0.3px]">{job.title}</p>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="flex items-center gap-1 text-[12px] text-[#5f5d54]">
-                              <Users className="w-3 h-3" />
-                              {appCounts[job.id] ?? 0}
-                            </span>
-                            <DeleteJobButton jobId={job.id} />
-                            <ArrowRight className="w-3.5 h-3.5 text-[#c8c5bc] group-hover:text-[#8a877b] transition-colors" />
+              <div className="mb-10">
+                <div className="grid grid-cols-3 gap-[16px]">
+                  {activeJobs.map((job) => {
+                    const companyName = job.companies?.name ?? "Organisation";
+                    const appCount = appCounts[job.id] ?? 0;
+                    return (
+                      <div
+                        key={job.id}
+                        className="bg-white rounded-[14px] flex flex-col ring-1 ring-[#e8f2eb] hover:ring-[#b8dfc4] hover:-translate-y-[2px] hover:shadow-sm transition-all"
+                      >
+                        <div className="p-[20px] flex flex-col gap-[20px] flex-1">
+                          {/* Header */}
+                          <div className="flex items-center gap-[12px] overflow-hidden">
+                            <div
+                              className="w-[41px] h-[41px] rounded-[10px] flex items-center justify-center text-white text-[14px] font-bold shrink-0"
+                              style={{ backgroundColor: companyColor(companyName) }}
+                            >
+                              {companyName.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[17px] font-semibold text-[#0a2412] leading-[20px] truncate">{job.title}</p>
+                              <p className="text-[12px] text-[#5f5d54] leading-[16px] truncate mt-[4px]">
+                                {[companyName, job.location].filter(Boolean).join(" · ")}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Tags */}
+                          <div className="flex flex-wrap gap-[6px]">
+                            {job.work_mode && (
+                              <span className="border border-[#d0ebd8] bg-[#f0f9f3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#1a5c30] leading-[16px]">
+                                {WORK_MODE_LABELS[job.work_mode] ?? job.work_mode}
+                              </span>
+                            )}
+                            {job.employment_type && (
+                              <span className="border border-[#eceae3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#5f5d54] leading-[16px]">
+                                {TYPE_LABELS[job.employment_type] ?? job.employment_type}
+                              </span>
+                            )}
+                            {(job.required_skills ?? []).slice(0, 2).map((skill: string) => (
+                              <span key={skill} className="border border-[#eceae3] px-[9px] py-[3px] rounded-full text-[11px] font-medium text-[#5f5d54] leading-[16px]">
+                                {skill}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[12px] text-[#8a877b] mb-2">
-                          {job.location && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {job.location}
-                            </span>
-                          )}
-                          {job.work_mode && (
-                            <span className="px-1.5 py-0.5 bg-[#f5f3ed] text-[#5f5d54] text-[10px] rounded-full">
-                              {WORK_MODE_LABELS[job.work_mode] ?? job.work_mode}
-                            </span>
-                          )}
-                          {job.employment_type && (
-                            <span className="px-1.5 py-0.5 bg-[#f5f3ed] text-[#5f5d54] text-[10px] rounded-full">
-                              {TYPE_LABELS[job.employment_type] ?? job.employment_type}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {(job.required_skills ?? []).slice(0, 5).map((skill: string) => (
-                            <span key={skill} className="px-2 py-0.5 bg-[#e8f2eb] text-[#0a2412] text-[10px] rounded-full">
-                              {skill}
-                            </span>
-                          ))}
-                          {(job.required_skills ?? []).length > 5 && (
-                            <span className="px-2 py-0.5 bg-[#f5f3ed] text-[#8a877b] text-[10px] rounded-full">
-                              +{(job.required_skills ?? []).length - 5} more
-                            </span>
-                          )}
+
+                        <div className="h-px bg-[#eceae3]" />
+
+                        <div className="p-[20px] flex items-center gap-[8px]">
+                          <span className="flex items-center gap-1.5 text-[12px] text-[#8a877b]">
+                            <Users className="w-3 h-3" />
+                            {appCount} applicant{appCount !== 1 ? "s" : ""}
+                          </span>
+                          <div className="flex-1" />
+                          <DeleteJobButton jobId={job.id} />
+                          <Link
+                            href={`/recruiter/jobs/${job.id}`}
+                            className="h-[33px] w-[54px] rounded-[10px] bg-white border border-[#dddbd2] text-[#0a2412] text-[12px] font-medium flex items-center justify-center hover:bg-[#f5f4f0] transition-colors"
+                          >
+                            view
+                          </Link>
                         </div>
                       </div>
-                    </Link>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
 
+            {/* Closed jobs grid */}
             {closedJobs.length > 0 && (
               <div>
-                <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Closed ({closedJobs.length})</p>
-                <div className="flex flex-col gap-3">
-                  {closedJobs.map((job: { id: string; title: string; location: string | null }) => (
-                    <div key={job.id} className="bg-white/50 rounded-[16px] border border-[#eceae3] p-5 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-[10px] bg-[#f0ede8] flex items-center justify-center shrink-0">
-                        <Briefcase className="w-4 h-4 text-[#c8c5bc]" />
+                <p className="text-[11px] uppercase tracking-[0.14em] text-[#8a877b] mb-4">Closed</p>
+                <div className="grid grid-cols-3 gap-[16px]">
+                  {closedJobs.map((job) => (
+                    <div key={job.id} className="bg-white/50 rounded-[14px] border border-[#eceae3] p-[20px] flex flex-col gap-[12px]">
+                      <div className="flex items-center gap-[12px]">
+                        <div className="w-[41px] h-[41px] rounded-[10px] bg-[#f5f3ed] flex items-center justify-center text-[#c8c5bc] text-[14px] font-bold shrink-0">
+                          {job.title.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[14px] font-medium text-[#8a877b] truncate">{job.title}</p>
+                          {job.location && <p className="text-[12px] text-[#c8c5bc] truncate">{job.location}</p>}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-medium text-[#8a877b]">{job.title}</p>
-                        {job.location && <p className="text-[12px] text-[#c8c5bc]">{job.location}</p>}
-                      </div>
-                      <span className="text-[11px] text-[#c8c5bc] px-2 py-0.5 bg-[#f5f3ed] rounded-full">closed</span>
+                      <span className="text-[11px] text-[#c8c5bc] px-2 py-0.5 bg-[#f5f3ed] rounded-full self-start">closed</span>
                     </div>
                   ))}
                 </div>
