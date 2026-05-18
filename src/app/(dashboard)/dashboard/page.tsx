@@ -21,6 +21,9 @@ export default async function DashboardPage() {
     { count: experienceCount },
     { data: cvsRaw },
     { data: roomsRaw },
+    { count: liveFollowerCount },
+    { count: liveFollowingCount },
+    { count: liveConnectionCount },
   ] = await Promise.all([
     sb.from("profiles")
       .select("full_name, headline, avatar_url, location, follower_count, following_count, connection_count, target_roles, salary_preferences")
@@ -70,6 +73,11 @@ export default async function DashboardPage() {
       .select("rooms(id, name, slug, member_count)")
       .eq("user_id", user.id)
       .limit(5),
+
+    sb.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user.id),
+    sb.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id),
+    sb.from("connections").select("*", { count: "exact", head: true })
+      .or(`user_id_a.eq.${user.id},user_id_b.eq.${user.id}`),
   ]);
 
   // Build status counts map
@@ -89,6 +97,12 @@ export default async function DashboardPage() {
     target_roles: string[] | null;
     salary_preferences: { min?: number; max?: number; currency?: string } | null;
   } | null;
+
+  if (profile) {
+    profile.follower_count = liveFollowerCount ?? 0;
+    profile.following_count = liveFollowingCount ?? 0;
+    profile.connection_count = liveConnectionCount ?? 0;
+  }
 
   const userName = profile?.full_name ?? user.email?.split("@")[0] ?? "there";
 
