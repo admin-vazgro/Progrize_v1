@@ -33,6 +33,10 @@ export default function CertificationModal({ item, onSave, onDelete, onClose }: 
       setError("Certification name is required");
       return;
     }
+    if (form.issue_date && form.expiration_date && form.expiration_date < form.issue_date) {
+      setError("Expiry date cannot be before issue date");
+      return;
+    }
     setSaving(true);
     setError(null);
     const url = item ? `/api/certifications/${item.id}` : "/api/certifications";
@@ -110,7 +114,12 @@ export default function CertificationModal({ item, onSave, onDelete, onClose }: 
               <input
                 type="month"
                 value={form.expiration_date}
-                onChange={(e) => set("expiration_date", e.target.value)}
+                min={form.issue_date || undefined}
+                onChange={(e) => {
+                  set("expiration_date", e.target.value);
+                  if (form.issue_date && e.target.value < form.issue_date) setError("Expiry date cannot be before issue date");
+                  else setError(null);
+                }}
                 className="w-full px-4 py-2.5 rounded-[10px] bg-[#f8fafb] text-[#292929] text-sm outline-none"
               />
             </div>
