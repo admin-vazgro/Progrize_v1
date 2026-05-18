@@ -529,11 +529,15 @@ function ApplicationDetailPanel({
             </div>
           )}
 
-          {/* Applied date */}
+          {/* Saved / Applied date */}
           {(app.applied_at || app.created_at) && (
             <div className="flex items-center gap-[8px] text-[12px] text-[#8a877b]">
               <Calendar className="w-[13px] h-[13px] shrink-0" />
-              <span>Applied {formatDistanceToNow(app.applied_at ?? app.created_at)}</span>
+              <span>
+                {app.status === "saved"
+                  ? `Saved ${formatDistanceToNow(app.created_at)}`
+                  : `Applied ${formatDistanceToNow(app.applied_at ?? app.created_at)}`}
+              </span>
             </div>
           )}
 

@@ -166,14 +166,25 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
 
   useEffect(() => {
     if (defaultKeywords) search(defaultKeywords, defaultLocation);
-    // Fetch internal jobs and applied IDs in parallel
     fetch("/api/jobs/internal")
       .then((r) => r.ok ? r.json() : { jobs: [] })
       .then((d) => setInternalJobs(d.jobs ?? []));
     fetch("/api/jobs/apply")
       .then((r) => r.ok ? r.json() : { applied: [] })
       .then((d) => setAppliedIds(new Set(d.applied ?? [])));
-
+    // Pre-populate saved IDs from tracker (source_url contains Reed jobId in path)
+    fetch("/api/tracker")
+      .then((r) => r.ok ? r.json() : { applications: [] })
+      .then((d) => {
+        const ids = new Set<number>();
+        for (const app of (d.applications ?? [])) {
+          if (app.source_url) {
+            const match = (app.source_url as string).match(/\/(\d+)(?:[/?]|$)/);
+            if (match) ids.add(Number(match[1]));
+          }
+        }
+        if (ids.size > 0) setSavedIds(ids);
+      });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-open job from shared link (?job=jobId&title=...&company=...&location=...)
