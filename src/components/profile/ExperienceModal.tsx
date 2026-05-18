@@ -38,6 +38,10 @@ export default function ExperienceModal({ item, onSave, onDelete, onClose }: Pro
       setError("Job title and company name are required");
       return;
     }
+    if (!form.is_current && form.start_date && form.end_date && form.end_date < form.start_date) {
+      setError("End date cannot be before start date");
+      return;
+    }
     setSaving(true);
     setError(null);
     const achievements = form.achievements.split("\n").map((s) => s.trim()).filter(Boolean);
@@ -124,7 +128,12 @@ export default function ExperienceModal({ item, onSave, onDelete, onClose }: Pro
               <input
                 type="month"
                 value={form.end_date}
-                onChange={(e) => set("end_date", e.target.value)}
+                min={form.start_date || undefined}
+                onChange={(e) => {
+                  set("end_date", e.target.value);
+                  if (form.start_date && e.target.value < form.start_date) setError("End date cannot be before start date");
+                  else setError(null);
+                }}
                 disabled={form.is_current}
                 className="w-full px-4 py-2.5 rounded-[10px] bg-[#f8fafb] text-[#292929] text-sm outline-none disabled:opacity-40"
               />
