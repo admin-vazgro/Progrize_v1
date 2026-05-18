@@ -291,9 +291,11 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
             <div className="flex items-center gap-[8px] shrink-0">
               <button
                 onClick={onSave}
-                disabled={isSaved}
+                aria-label={isSaved ? "Unsave" : "Save"}
                 className={`w-[30px] h-[30px] rounded-[10px] border flex items-center justify-center transition-colors ${
-                  isSaved ? "border-[#0a2412] bg-[#0a2412] text-white" : "border-[#eceae3] text-[#b0ae9f] hover:border-[#c0bdb4]"
+                  isSaved
+                    ? "border-[#0a2412] bg-[#0a2412] text-white hover:bg-red-50 hover:border-red-300 hover:text-red-400"
+                    : "border-[#eceae3] text-[#b0ae9f] hover:border-[#c0bdb4]"
                 }`}
               >
                 {isSaved ? <BookmarkCheck className="w-[15px] h-[15px]" /> : <Bookmark className="w-[15px] h-[15px]" />}

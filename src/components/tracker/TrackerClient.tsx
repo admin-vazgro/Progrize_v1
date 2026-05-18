@@ -470,6 +470,22 @@ function ApplicationDetailPanel({
   const cvName = extractCvName(app.notes);
   const score = app.ats_score ?? null;
 
+  // Extract Reed jobId from source_url to build internal link + check expiry
+  const reedJobId = app.source_url?.match(/\/(\d+)(?:[/?]|$)/)?.[1] ?? null;
+  const internalJobUrl = reedJobId
+    ? `/jobs?job=${reedJobId}&title=${encodeURIComponent(app.job_title)}&company=${encodeURIComponent(app.company_name)}&location=${encodeURIComponent(app.location ?? "")}`
+    : null;
+  const [jobStatus, setJobStatus] = useState<"checking" | "live" | "expired" | "unknown">(
+    reedJobId ? "checking" : "unknown"
+  );
+
+  useEffect(() => {
+    if (!reedJobId) return;
+    fetch(`/api/jobs/by-id?jobId=${reedJobId}`)
+      .then((r) => setJobStatus(r.ok ? "live" : "expired"))
+      .catch(() => setJobStatus("unknown"));
+  }, [reedJobId]);
+
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
@@ -552,23 +568,41 @@ function ApplicationDetailPanel({
             </div>
           )}
 
-          {/* View job link */}
-          {(app.source_url || progrize) && (
+          {/* View in Jobs for you */}
+          {internalJobUrl ? (
+            jobStatus === "expired" ? (
+              <div className="flex items-center gap-[8px] px-[14px] py-[10px] rounded-[12px] border border-[#f0ede8] bg-[#fdf8f6]">
+                <span className="text-[11px] font-medium text-[#c0614a]">Expired listing</span>
+                <span className="text-[10px] text-[#b0ae9f]">— no longer on Reed</span>
+              </div>
+            ) : (
+              <a
+                href={internalJobUrl}
+                className="flex items-center justify-between px-[14px] py-[10px] rounded-[12px] border border-[#eceae3] hover:border-[#c0bdb4] hover:bg-[#fafaf8] transition-colors group"
+              >
+                <div className="flex items-center gap-[8px]">
+                  {jobStatus === "checking"
+                    ? <Loader2 className="w-[13px] h-[13px] text-[#8a877b] shrink-0 animate-spin" />
+                    : <ExternalLink className="w-[13px] h-[13px] text-[#8a877b] shrink-0" />}
+                  <p className="text-[12px] font-medium text-[#3d3c36]">Open in Jobs for you</p>
+                </div>
+                <ArrowRight className="w-[12px] h-[12px] text-[#c0bdb4] group-hover:text-[#8a877b] transition-colors" />
+              </a>
+            )
+          ) : app.source_url ? (
             <a
-              href={progrize ? "/jobs" : app.source_url!}
-              target={progrize ? "_self" : "_blank"}
+              href={app.source_url}
+              target="_blank"
               rel="noreferrer"
               className="flex items-center justify-between px-[14px] py-[10px] rounded-[12px] border border-[#eceae3] hover:border-[#c0bdb4] hover:bg-[#fafaf8] transition-colors group"
             >
               <div className="flex items-center gap-[8px]">
                 <ExternalLink className="w-[13px] h-[13px] text-[#8a877b] shrink-0" />
-                <p className="text-[12px] font-medium text-[#3d3c36]">
-                  {progrize ? "Browse Progrize jobs" : "View original posting"}
-                </p>
+                <p className="text-[12px] font-medium text-[#3d3c36]">View original posting</p>
               </div>
               <ArrowRight className="w-[12px] h-[12px] text-[#c0bdb4] group-hover:text-[#8a877b] transition-colors" />
             </a>
-          )}
+          ) : null}
 
           {/* Location / salary */}
           {(app.location || app.salary_range) && (

@@ -81,6 +81,7 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
   const [searched, setSearched] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<number | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [savedAppIdMap, setSavedAppIdMap] = useState<Map<number, string>>(new Map());
   const [selectedJob, setSelectedJob] = useState<ReedJob | null>(null);
   const [internalJobs, setInternalJobs] = useState<InternalJob[]>([]);
   const [selectedInternalJob, setSelectedInternalJob] = useState<InternalJob | null>(null);
@@ -172,18 +173,19 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
     fetch("/api/jobs/apply")
       .then((r) => r.ok ? r.json() : { applied: [] })
       .then((d) => setAppliedIds(new Set(d.applied ?? [])));
-    // Pre-populate saved IDs from tracker (source_url contains Reed jobId in path)
+    // Pre-populate saved IDs + app ID map from tracker
     fetch("/api/tracker")
       .then((r) => r.ok ? r.json() : { applications: [] })
       .then((d) => {
         const ids = new Set<number>();
+        const map = new Map<number, string>();
         for (const app of (d.applications ?? [])) {
           if (app.source_url) {
             const match = (app.source_url as string).match(/\/(\d+)(?:[/?]|$)/);
-            if (match) ids.add(Number(match[1]));
+            if (match) { const jid = Number(match[1]); ids.add(jid); map.set(jid, app.id); }
           }
         }
-        if (ids.size > 0) setSavedIds(ids);
+        if (ids.size > 0) { setSavedIds(ids); setSavedAppIdMap(map); }
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -285,7 +287,27 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
         status: "saved",
       }),
     });
-    if (res.ok) setSavedIds((prev) => new Set([...prev, job.jobId]));
+    if (res.ok) {
+      const data = await res.json();
+      const appId: string = data.application?.id;
+      setSavedIds((prev) => new Set([...prev, job.jobId]));
+      if (appId) setSavedAppIdMap((prev) => new Map(prev).set(job.jobId, appId));
+    }
+  }
+
+  async function handleUnsaveFromTracker(job: ReedJob) {
+    const appId = savedAppIdMap.get(job.jobId);
+    if (!appId) return;
+    const res = await fetch(`/api/tracker/${appId}`, { method: "DELETE" });
+    if (res.ok) {
+      setSavedIds((prev) => { const s = new Set(prev); s.delete(job.jobId); return s; });
+      setSavedAppIdMap((prev) => { const m = new Map(prev); m.delete(job.jobId); return m; });
+    }
+  }
+
+  function handleToggleSave(job: ReedJob) {
+    if (savedIds.has(job.jobId)) handleUnsaveFromTracker(job);
+    else handleSaveToTracker(job);
   }
 
   return (
@@ -632,12 +654,11 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
                         </p>
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleSaveToTracker(job); }}
-                        disabled={savedIds.has(job.jobId)}
-                        aria-label={savedIds.has(job.jobId) ? "Saved" : "Save"}
+                        onClick={(e) => { e.stopPropagation(); handleToggleSave(job); }}
+                        aria-label={savedIds.has(job.jobId) ? "Unsave" : "Save"}
                         className={`w-[30px] h-[30px] rounded-[10px] border shrink-0 flex items-center justify-center transition-colors ${
                           savedIds.has(job.jobId)
-                            ? "border-[#0a2412] bg-[#0a2412] text-white"
+                            ? "border-[#0a2412] bg-[#0a2412] text-white hover:bg-red-50 hover:border-red-300 hover:text-red-400"
                             : "border-[#eceae3] text-[#b0ae9f] hover:border-[#c0bdb4] hover:text-[#5f5d54]"
                         }`}
                       >
@@ -705,7 +726,7 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
         <JobDrawer
           job={selectedJob}
           isSaved={savedIds.has(selectedJob.jobId)}
-          onSave={() => handleSaveToTracker(selectedJob)}
+          onSave={() => handleToggleSave(selectedJob)}
           onClose={() => setSelectedJob(null)}
         />
       )}
