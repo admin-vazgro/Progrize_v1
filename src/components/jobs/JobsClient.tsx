@@ -173,7 +173,30 @@ export default function JobsClient({ skills, defaultKeywords, defaultLocation, h
     fetch("/api/jobs/apply")
       .then((r) => r.ok ? r.json() : { applied: [] })
       .then((d) => setAppliedIds(new Set(d.applied ?? [])));
+
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-open job from shared link (?job=jobId&title=...&company=...&location=...)
+  useEffect(() => {
+    const jobId = searchParams.get("job");
+    const title = searchParams.get("title");
+    const company = searchParams.get("company");
+    if (!jobId || !title || !company) return;
+    setSelectedJob({
+      jobId: Number(jobId),
+      jobTitle: title,
+      employerName: company,
+      locationName: searchParams.get("location") ?? "",
+      minimumSalary: null,
+      maximumSalary: null,
+      currency: null,
+      date: new Date().toISOString(),
+      jobDescription: "",
+      jobUrl: "",
+      contractType: null,
+      partTime: false,
+    });
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Open a job pre-selected from the Topbar search dropdown
   useEffect(() => {

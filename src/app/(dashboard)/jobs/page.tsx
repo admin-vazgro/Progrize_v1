@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import JobsClient from "@/components/jobs/JobsClient";
 
 export default async function JobsPage() {
@@ -37,11 +38,13 @@ export default async function JobsPage() {
   const defaultLocation = profile?.location?.split(/[,(]/)[0]?.trim() ?? "";
 
   return (
-    <JobsClient
-      skills={skills}
-      defaultKeywords={defaultKeywords}
-      defaultLocation={defaultLocation}
-      hasProfile={skills.length > 0}
-    />
+    <Suspense>
+      <JobsClient
+        skills={skills}
+        defaultKeywords={defaultKeywords}
+        defaultLocation={defaultLocation}
+        hasProfile={skills.length > 0}
+      />
+    </Suspense>
   );
 }

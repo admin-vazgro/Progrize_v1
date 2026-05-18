@@ -95,8 +95,28 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const cvRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleShare() {
+    const params = new URLSearchParams({
+      job: String(job.jobId),
+      title: job.jobTitle,
+      company: job.employerName,
+      location: job.locationName ?? "",
+    });
+    const url = `${window.location.origin}/jobs?${params.toString()}`;
+    if (navigator.share) {
+      navigator.share({ title: job.jobTitle, text: `${job.jobTitle} at ${job.employerName}`, url })
+        .catch((e) => { if (e?.name !== "AbortError") console.error(e); });
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  }
 
   useEffect(() => {
     if (!result) { setScoreAnimated(false); return; }
@@ -296,10 +316,12 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
               >
                 Apply with my CV
               </button>
-              <a href={job.jobUrl} target="_blank" rel="noreferrer"
-                className="h-[38px] px-[14px] border border-[#eceae3] text-[#3d3c36] text-[13px] font-medium rounded-[10px] hover:border-[#c0bdb4] transition flex items-center">
-                Share
-              </a>
+              <button
+                onClick={handleShare}
+                className="h-[38px] px-[14px] border border-[#eceae3] text-[#3d3c36] text-[13px] font-medium rounded-[10px] hover:border-[#c0bdb4] transition flex items-center gap-1.5"
+              >
+                {copied ? <><Check className="w-3.5 h-3.5 text-[#1a5c30]" /> Copied!</> : "Share"}
+              </button>
               <a href={job.jobUrl} target="_blank" rel="noreferrer"
                 className="w-[38px] h-[38px] border border-[#eceae3] rounded-[10px] hover:border-[#c0bdb4] transition flex items-center justify-center text-[#5f5d54]">
                 <ExternalLink className="w-[14px] h-[14px]" />
@@ -527,8 +549,8 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
                   <div className="animate-fade-up" style={{ animationDelay: "40ms" }}>
                     <p className="text-[10px] font-mono text-[#c6f46b] opacity-70 mb-[6px]">matching</p>
                     <div className="flex flex-col gap-[5px]">
-                      {result.matchingSkills.slice(0, 6).map((s) => (
-                        <div key={s} className="flex items-center gap-[8px]">
+                      {result.matchingSkills.slice(0, 6).map((s, i) => (
+                        <div key={`${s}-${i}`} className="flex items-center gap-[8px]">
                           <Check className="w-[12px] h-[12px] text-[#c6f46b] shrink-0" />
                           <span className="text-[12px] text-[#dee2df]">{s}</span>
                         </div>
@@ -542,8 +564,8 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
                   <div className="animate-fade-up" style={{ animationDelay: "80ms" }}>
                     <p className="text-[10px] font-mono text-[#ff8a8a] opacity-70 mb-[6px]">missing</p>
                     <div className="flex flex-col gap-[5px]">
-                      {result.missingSkills.slice(0, 6).map((s) => (
-                        <div key={s} className="flex items-center gap-[8px]">
+                      {result.missingSkills.slice(0, 6).map((s, i) => (
+                        <div key={`${s}-${i}`} className="flex items-center gap-[8px]">
                           <X className="w-[12px] h-[12px] text-[#ff8a8a] shrink-0" />
                           <span className="text-[12px] text-[#dee2df]">{s}</span>
                         </div>
@@ -557,8 +579,8 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
                   <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
                     <p className="text-[10px] font-mono text-[#f9a825] opacity-80 mb-[6px]">missing keywords</p>
                     <div className="flex flex-wrap gap-[6px]">
-                      {result.missingKeywords.slice(0, 10).map((k) => (
-                        <span key={k} className="px-[8px] py-[3px] rounded-full bg-white/10 border border-white/15 text-[11px] text-[#dee2df]">{k}</span>
+                      {result.missingKeywords.slice(0, 10).map((k, i) => (
+                        <span key={`${k}-${i}`} className="px-[8px] py-[3px] rounded-full bg-white/10 border border-white/15 text-[11px] text-[#dee2df]">{k}</span>
                       ))}
                     </div>
                   </div>
@@ -658,8 +680,8 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
                       <div>
                         <p className="text-[10px] font-mono text-[#c6f46b] opacity-50 mb-[5px]">skills added</p>
                         <div className="flex flex-wrap gap-[5px]">
-                          {tailored.skills_to_add.slice(0, 8).map((s) => (
-                            <span key={s} className="px-[7px] py-[2px] rounded-full bg-white/10 border border-white/15 text-[10px] text-[#dee2df]">{s}</span>
+                          {tailored.skills_to_add.slice(0, 8).map((s, i) => (
+                            <span key={`${s}-${i}`} className="px-[7px] py-[2px] rounded-full bg-white/10 border border-white/15 text-[10px] text-[#dee2df]">{s}</span>
                           ))}
                         </div>
                       </div>
@@ -795,8 +817,8 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
                     <p className="text-[10px] font-mono text-[#3d3c36] font-semibold">required skills</p>
                   </div>
                   <div className="flex flex-wrap gap-[6px]">
-                    {jobDetails.required_skills.map((s) => (
-                      <span key={s} className="px-[9px] py-[3px] rounded-full border border-[#eceae3] bg-white text-[11px] text-[#3d3c36] font-medium">
+                    {jobDetails.required_skills.map((s, i) => (
+                      <span key={`${s}-${i}`} className="px-[9px] py-[3px] rounded-full border border-[#eceae3] bg-white text-[11px] text-[#3d3c36] font-medium">
                         {s}
                       </span>
                     ))}
@@ -812,8 +834,8 @@ export default function JobDrawer({ job, isSaved, onSave, onClose }: Props) {
                     <p className="text-[10px] font-mono text-[#8a877b]">nice to have</p>
                   </div>
                   <div className="flex flex-wrap gap-[6px]">
-                    {jobDetails.nice_to_have.map((s) => (
-                      <span key={s} className="px-[9px] py-[3px] rounded-full border border-[#eceae3] text-[11px] text-[#8a877b]">
+                    {jobDetails.nice_to_have.map((s, i) => (
+                      <span key={`${s}-${i}`} className="px-[9px] py-[3px] rounded-full border border-[#eceae3] text-[11px] text-[#8a877b]">
                         {s}
                       </span>
                     ))}
