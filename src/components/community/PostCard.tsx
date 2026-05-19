@@ -603,22 +603,6 @@ export default function PostCard({ post, currentUserId, onLikeToggle, onCommentA
           {showComments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
 
-        <button
-          onClick={handleLike}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs transition-colors ${
-            post.liked_by_me
-              ? "text-[#0a2412] font-semibold bg-[#f7fcca]"
-              : "text-[#4b4b4b] hover:bg-[#e8e8e8]"
-          }`}
-        >
-          <Heart className={`w-3.5 h-3.5 ${post.liked_by_me ? "fill-current" : ""}`} />
-          {post.like_count > 0 && <span>{post.like_count}</span>}
-        </button>
-
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs text-[#4b4b4b] hover:bg-[#e8e8e8] transition-colors">
-          <Repeat2 className="w-3.5 h-3.5" />
-          {post.reshare_count > 0 && <span>{post.reshare_count}</span>}
-        </button>
       </div>
 
       {/* Comments */}
