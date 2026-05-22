@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Users, Lock, Loader2, Hash, Settings, Shield, ArrowUpRight } from "lucide-react";
 import FeedTab from "./FeedTab";
 import ManageRoomModal from "./ManageRoomModal";
@@ -33,15 +34,20 @@ interface Props {
 }
 
 export default function RoomPageClient({ room, userId, userName, userRole, joinedRooms }: Props) {
+  const searchParams = useSearchParams();
   const [isJoined, setIsJoined] = useState(userRole !== null);
   const [memberCount, setMemberCount] = useState(room.member_count);
   const [joining, setJoining] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [roomData, setRoomData] = useState(room);
 
-  async function toggleJoin() {
+  async function toggleJoin(inviteToken?: string) {
     setJoining(true);
-    const res = await fetch(`/api/rooms/${roomData.slug}/join`, { method: "POST" });
+    const res = await fetch(`/api/rooms/${roomData.slug}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inviteToken ? { invite_token: inviteToken } : {}),
+    });
     const data = await res.json();
     if (res.ok) {
       setIsJoined(data.joined);
@@ -49,6 +55,12 @@ export default function RoomPageClient({ room, userId, userName, userRole, joine
     }
     setJoining(false);
   }
+
+  // Auto-join via invite link
+  useEffect(() => {
+    const token = searchParams.get("invite");
+    if (token && !isJoined) toggleJoin(token);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-[#fafaf8]">

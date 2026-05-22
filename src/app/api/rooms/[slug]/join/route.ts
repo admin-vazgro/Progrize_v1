@@ -13,8 +13,17 @@ export async function POST(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any;
 
-  const { data: room } = await sb.from("rooms").select("id").eq("slug", slug).single();
+  const body = await _req.json().catch(() => ({}));
+  const inviteToken: string | undefined = body?.invite_token;
+
+  const { data: room } = await sb.from("rooms").select("id, is_private, invite_token").eq("slug", slug).single();
   if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+
+  // Block joining private rooms without a valid invite token
+  if (room.is_private && inviteToken !== room.invite_token) {
+    const { data: existingMember } = await sb.from("room_members").select("id").eq("room_id", room.id).eq("user_id", user.id).single();
+    if (!existingMember) return NextResponse.json({ error: "Invalid invite" }, { status: 403 });
+  }
 
   const { data: existing } = await sb
     .from("room_members")

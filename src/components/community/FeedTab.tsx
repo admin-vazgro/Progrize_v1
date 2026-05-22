@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PostCard from "./PostCard";
-import { Loader2 } from "lucide-react";
+import { Loader2, ImagePlus, X } from "lucide-react";
 
 export interface Post {
   id: string;
@@ -51,6 +51,8 @@ export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideC
   const [showCompose, setShowCompose] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -76,20 +78,40 @@ export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideC
 
   useEffect(() => { fetchPosts(); }, [fetchPosts, refreshKey]);
 
+  function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []).slice(0, 4 - images.length);
+    const next = files.map((file) => ({ file, preview: URL.createObjectURL(file) }));
+    setImages((prev) => [...prev, ...next]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removeImage(idx: number) {
+    setImages((prev) => { URL.revokeObjectURL(prev[idx].preview); return prev.filter((_, i) => i !== idx); });
+  }
+
   async function handlePost() {
     if (!draft.trim() || draft.length > POST_LIMIT) return;
     setPosting(true);
     setPostError(null);
     try {
+      let mediaUrls: string[] = [];
+      if (images.length > 0) {
+        const fd = new FormData();
+        images.forEach((img) => fd.append("files", img.file));
+        const uploadRes = await fetch("/api/posts/media", { method: "POST", body: fd });
+        const uploadData = await uploadRes.json();
+        if (uploadRes.ok) mediaUrls = uploadData.urls ?? [];
+      }
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: draft, room_id: roomId }),
+        body: JSON.stringify({ content: draft, room_id: roomId, media_urls: mediaUrls.length ? mediaUrls : undefined }),
       });
       const data = await res.json();
       if (res.ok) {
         setPosts((prev) => [data.post, ...prev]);
         setDraft("");
+        setImages([]);
         setShowCompose(false);
       } else {
         setPostError(data.error ?? "Failed to post");
@@ -143,21 +165,58 @@ export default function FeedTab({ userId, userName, roomId, joinedRoomIds, hideC
               maxLength={POST_LIMIT}
               className="w-full px-0 py-0 text-sm text-[#292929] placeholder:text-[#4b4b4b] outline-none resize-none bg-transparent"
             />
+
+            {/* Image previews */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {images.map((img, i) => (
+                  <div key={i} className="relative rounded-[10px] overflow-hidden aspect-video bg-[#f0ede8]">
+                    <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeImage(i)}
+                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {postError && <p className="text-xs text-red-600">{postError}</p>}
-            <div className="flex items-center justify-between pt-2">
-              <span className={`text-xs tabular-nums ${draft.length > POST_LIMIT * 0.9 ? "text-red-500" : "text-[#b0b0b0]"}`}>
-                {draft.length > POST_LIMIT * 0.8 ? `${POST_LIMIT - draft.length} left` : ""}
-              </span>
+
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImagePick}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={images.length >= 4}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] text-xs text-[#5f5d54] hover:bg-[#f0ede8] disabled:opacity-40 transition-colors"
+                >
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  {images.length > 0 ? `${images.length}/4` : "Photo"}
+                </button>
+                <span className={`text-xs tabular-nums ${draft.length > POST_LIMIT * 0.9 ? "text-red-500" : "text-[#b0b0b0]"}`}>
+                  {draft.length > POST_LIMIT * 0.8 ? `${POST_LIMIT - draft.length} left` : ""}
+                </span>
+              </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => { setShowCompose(false); setDraft(""); setPostError(null); }}
+                  onClick={() => { setShowCompose(false); setDraft(""); setImages([]); setPostError(null); }}
                   className="px-4 py-2 rounded-[10px] text-sm text-[#292929] hover:bg-[#e8e8e8] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handlePost}
-                  disabled={posting || !draft.trim() || draft.length > POST_LIMIT}
+                  disabled={posting || (!draft.trim() && images.length === 0) || draft.length > POST_LIMIT}
                   className="px-4 py-2 rounded-[10px] text-sm bg-[#c1cc5a] text-[#0a2412] font-medium hover:bg-[#c1cc5a]/90 disabled:opacity-40 flex items-center gap-1.5 transition-colors"
                 >
                   {posting && <Loader2 className="w-3 h-3 animate-spin" />}
