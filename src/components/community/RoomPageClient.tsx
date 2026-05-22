@@ -108,7 +108,7 @@ export default function RoomPageClient({ room, userId, userName, userRole, joine
                 </button>
               )}
               <button
-                onClick={toggleJoin}
+                onClick={() => toggleJoin()}
                 disabled={joining}
                 className={`h-[34px] px-[14px] rounded-[10px] text-[13px] font-medium flex items-center gap-1.5 transition-colors ${
                   isJoined
@@ -140,7 +140,7 @@ export default function RoomPageClient({ room, userId, userName, userRole, joine
                   <p className="text-[14px] font-semibold text-[#292929] mb-1">Private Room</p>
                   <p className="text-[12px] text-[#8a877b] mb-5">Join to see and participate in discussions.</p>
                   <button
-                    onClick={toggleJoin}
+                    onClick={() => toggleJoin()}
                     disabled={joining}
                     className="h-[34px] px-6 rounded-[10px] text-[13px] font-medium bg-[#0a2412] text-[#fafaf8] hover:bg-[#0a2412]/90 disabled:opacity-50 transition-colors"
                   >
@@ -179,7 +179,7 @@ export default function RoomPageClient({ room, userId, userName, userRole, joine
                 </div>
                 {!isJoined && (
                   <button
-                    onClick={toggleJoin}
+                    onClick={() => toggleJoin()}
                     disabled={joining}
                     className="w-full mt-4 h-[34px] rounded-[10px] bg-[#0a2412] text-[#fafaf8] text-[13px] font-medium hover:bg-[#0a2412]/90 disabled:opacity-50 transition-colors"
                   >
